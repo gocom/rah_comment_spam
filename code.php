@@ -1,688 +1,530 @@
 <?php	##################
 	#
 	#	rah_comment_spam-plugin for Textpattern
-	#	version 0.5
+	#	version 0.6
 	#	by Jukka Svahn
 	#	http://rahforum.biz
+	#
+	#	Copyright (C) 2011 Jukka Svahn <http://rahforum.biz>
+	#	Licensed under GNU Genral Public License version 2
+	#	http://www.gnu.org/licenses/gpl-2.0.html
 	#
 	###################
 
 	if(@txpinterface == 'admin') {
-		add_privs('rah_comment_spam','1,2');
-		register_tab('extensions','rah_comment_spam','Comment Antispam');
-		register_callback('rah_comment_spam_page','rah_comment_spam');
-		register_callback('rah_comment_spam_head','admin_side','head_end');
+		rah_comment_spam_install();
+		add_privs('plugin_prefs.rah_comment_spam','1,2');
+		register_callback('rah_comment_spam_prefs','plugin_prefs.rah_comment_spam');
+		register_callback('rah_comment_spam_install','plugin_lifecycle.rah_comment_spam');
 	} else {
-		register_callback('rah_comment_spam','comment.save');
-		register_callback('rah_comment_spam_form','comment.form');
+		register_callback('rah_comment_spam_register','comment.save');
+		register_callback('rah_comment_spam_register','comment.form');
+	}
+
+/**
+	Installer
+	@param $event string Admin-side event.
+	@param $step string Admin-side, plugin-lifecycle step.
+*/
+
+	function rah_comment_spam_install($event='',$step='') {
+
+		if($step == 'deleted') {
+			safe_delete(
+				'txp_prefs',
+				"name like 'rah_comment_spam_%'"
+			);
+			return;
+		}
+
+		global $prefs, $textarray;
+
+		/*
+			Make sure language strings are set
+		*/
+
+		foreach(
+			array(
+				'method' => 'What to do comments detected as spam?',
+				'method_block' => 'Ignore, do not save',
+				'method_moderate' => 'Save to moderation queue',
+				'method_spam' => 'Save and flag as spam',
+				'message' => 'Message displayed to the user when the comment was blocked',
+				'spamwords' => 'List of spam words (comma-separated)',
+				'check' => 'Search spam words from following fields (comma-separated)',
+				'maxspamwords' => 'Maximum number of spam words until the comment is considered as spam',
+				'urlcount' => 'Number of allowed URLs',
+				'minwords' => 'Minimum number of words',
+				'maxwords' => 'Maximum number of words',
+				'minchars' => 'Minimum number of characters',
+				'maxchars' => 'Maximum number of characters',
+				'field' => 'Name of hidden spam trap field (empty to disable the trap)',
+				'commentuse' => 'Use quotas, limit users\' comment posting activity?',
+				'commentlimit' => 'Users\' comment quota limit',
+				'commentin' => 'Count users\' comments towards quota in',
+				'commentin_all' => 'In all articles',
+				'commentin_this' => 'In current article',
+				'commenttime' => 'Quota resets every number of seconds',
+				'emaildns' => 'Check email\'s DNS records?',
+				'use_type_detect' => 'Check the time user spent writing the comment?',
+				'type_interval' => 'Minimum time required to be spent writing a comment (in seconds)?'
+			) as $string => $translation
+		) {
+			$name = strpos($string, 'rah_') === 0 ? $string : 'rah_comment_spam_'.$string;
+
+			if(!isset($textarray[$name]))
+				$textarray[$name] = $translation;
+		}
+
+		$version = '0.6';
+
+		$current = isset($prefs['rah_comment_spam_version']) ? 
+			$prefs['rah_comment_spam_version'] : 'base';
+
+		if($version == $current)
+			return;
+
+		$ini = 
+			array(
+				'method' => 'moderate',
+				'message' => 'Your comment was marked as spam.',
+				'spamwords' => '',
+				'maxspamwords' => 3,
+				'check' => 'name, email, web, message',
+				'urlcount' => 6,
+				'minwords' => 1,
+				'maxwords' => 10000,
+				'minchars' => 1,
+				'maxchars' => 65535,
+				'field' => 'phone',
+				'commentuse' => 1,
+				'commentlimit' => 10,
+				'commentin' => 'this',
+				'commenttime' => 300,
+				'emaildns' => 0,
+				'use_type_detect' => 0,
+				'type_interval' => 5,
+				'nonce' => md5(uniqid(rand(),true))
+			);
+
+		/*
+			Migrate preferences format from <= 0.5 to >= 0.6
+		*/
+
+		if($current == 'base') {
+			@$rs = 
+				safe_rows(
+					'name, value',
+					'rah_comment_spam',
+					'1=1'
+				);
+
+			if(!empty($rs) && is_array($rs)) {
+				foreach($rs as $a) {
+					if(!isset($ini[$a['name']]))
+						continue;
+					
+					if(in_array($a['name'], array(
+						'use_type_detect',
+						'emaildns',
+						'commentuse',
+					)))
+						$a['value'] = $a['value'] == 'no' ? 0 : 1;
+					
+					$ini[$a['name']] = $a['value'];
+				}
+
+				@safe_query(
+					'DROP TABLE IF EXISTS '.safe_pfx('rah_comment_spam')
+				);
+			}
+		}
+
+		$position = 250;
+
+		/*
+			Add preference strings
+		*/
+		
+		foreach($ini as $name => $val) {
+
+			$n = 'rah_comment_spam_' . $name;
+			
+			if(!isset($prefs[$n])) {
+				
+				if($name == 'nonce') {
+					set_pref('rah_comment_spam_nonce',$val,'rah_cspam',2,'',0);
+					continue;
+				}
+				
+				switch($name) {
+					case 'commentuse':
+					case 'emaildns':
+					case 'use_type_detect':
+						$html = 'yesnoradio';
+						break;
+					case 'commentin':
+						$html = 'rah_comment_spam_select_commentin';
+						break;
+					case 'method':
+						$html = 'rah_comment_spam_select_method';
+						break;
+					case 'spamwords':
+						$html = 'rah_comment_spam_textarea';
+						break;
+					default:
+						$html = 'text_input';
+				}
+
+				safe_insert(
+					'txp_prefs',
+					"prefs_id=1,
+					name='".doSlash($n)."',
+					val='".doSlash($val)."',
+					type=0,
+					event='comments',
+					html='$html',
+					position=".$position
+				);
+				
+				$prefs[$n] = $val;
+			}
+			
+			$position++;
+		}
+		
+		/*
+			Set version
+		*/
+		
+		set_pref('rah_comment_spam_version',$version,'rah_cspam',2,'',0);
 	}
 
 /**
 	Check for spam
+	@param $event string Callback event.
 */
 
-	function rah_comment_spam() {
-		$form = getComment();
-		$evaluator =& get_comment_evaluator();
-		
-		@$rs = rah_comment_spam_fetch();
-		
-		if(!isset($rs['type_interval'])) {
-			rah_comment_spam_install();
-			$rs = rah_comment_spam_fetch();
+	function rah_comment_spam_register($event='') {
+		global $prefs;
+
+		rah_comment_spam_install();
+
+		/*
+			Add spam trap field to the comment form
+		*/
+
+		if($event == 'comment.form') {
+
+			$out = array();
+
+			if($prefs['rah_comment_spam_use_type_detect']) {
+				
+				$nonce = ps('rah_comment_spam_nonce');
+				$time = ps('rah_comment_spam_time');
+				
+				if(!$nonce && !$time) {
+					@$time = strtotime('now');
+					$nonce = md5($prefs['rah_comment_spam_nonce'].$time);
+				}
+				
+				$out[] =
+					hInput('rah_comment_spam_nonce', $nonce).
+					hInput('rah_comment_spam_time', $time);
+			}
+
+			if($prefs['rah_comment_spam_field'])
+				$out[] = 
+					'<div style="display:none;">'.
+						fInput(
+							'text',
+							htmlspecialchars($prefs['rah_comment_spam_field']),
+							ps($prefs['rah_comment_spam_field'])
+						).
+					'</div>';
+
+			return n.implode('',$out).n;
 		}
-		
-		$check = explode(',',$rs['check']);
-		
-		$where = 
-			((in_array('message',$check)) ? $form['message'].' ' : '').
-			((in_array('web',$check)) ? $form['web'].' ' : '').
-			((in_array('email',$check)) ? $form['email'].' ' : '').
-			((in_array('name',$check)) ? $form['name'].' ' : '');
-		
-		if(
-			($rs['field'] && trim(ps($rs['field']))) ||
-			
-			rah_comment_spam_words(
-				$where,
-				$rs
-			) ||
-			
-			rah_comment_spam_chars(
-				$form['message'],
-				$rs
-			) ||
-			
-			rah_comment_spam_find(
-				$rs['spamwords'],
-				$form['message'],
-				$rs['maxspamwords']
-			) ||
-			
-			rah_comment_spam_find(
-				array(
-					'https://',
-					'http://',
-					'ftp://',
-					'ftps://'
-				),
-				$form['message'],
-				$rs['urlcount']
-			) ||
-			
-			rah_comment_spam_limitcomments(
-				$rs
-			) ||
-			
-			rah_comment_spam_type_speed(
-				$rs
-			) ||
-			
-			rah_comment_spam_dns($form['email'],$rs)
-		
-		) {
-			switch($rs['method']) {
+
+		/*
+			Check sent comments before saving
+		*/
+
+		$comment = new rah_comment_spam();
+
+		if($comment->is_spam()) {
+			$evaluator =& get_comment_evaluator();
+			switch($prefs['rah_comment_spam_method']) {
 				case 'block' :
-					$evaluator -> add_estimate(RELOAD,1,$rs['message']);
+					$evaluator->add_estimate(RELOAD,1, gTxt($prefs['rah_comment_spam_message']));
 				break;
 				case 'moderate' :
-					$evaluator -> add_estimate(MODERATE,0.75);
+					$evaluator->add_estimate(MODERATE,0.75);
 				break;
 				default :
-					$evaluator -> add_estimate(SPAM,0.75);
+					$evaluator->add_estimate(SPAM,0.75);
 			}
 		}
 	}
 
 /**
-	Outputs hidden spam trap
+	Contains anti-spam tools
 */
 
-	function rah_comment_spam_form() {
-		
-		@$rs = rah_comment_spam_fetch();
-		
-		if(!isset($rs['type_interval']))
-			return;
-		
-		$out = array();
-		
-		if($rs['use_type_detect'] == 'yes') {
-			
-			if(
-				ps('rah_comment_spam_nonce') || ps('rah_comment_spam_time')
-			) {
-				$nonce = htmlspecialchars(ps('rah_comment_spam_nonce'));
-				$time = htmlspecialchars(ps('rah_comment_spam_time'));
-			} else {
-				@$time = strtotime('now');
-				$nonce = md5($rs['nonce'].$time);
-			}
-			
-			
-			$out[] =
-				'<input type="hidden" name="rah_comment_spam_nonce" value="'.$nonce.'" />'.
-				'<input type="hidden" name="rah_comment_spam_time" value="'.$time.'" />'
-			;
-		}
+class rah_comment_spam {
 
-		if(!empty($rs['field']))
-			$out[] = 
-				'<div style="display:none;">'.
-					'<input type="text" value="'.htmlspecialchars(ps($rs['field'])).'" name="'.htmlspecialchars($rs['field']).'" />'.
-				'</div>'
-			;
-		
+	private $form = array();
+
+/**
+	Filter comment
+	@return bool TRUE if comment is detected as spam.
+*/
+
+	public function is_spam() {
+		global $prefs;
+
+		$this->form = getComment();
+
+		foreach(do_list($prefs['rah_comment_spam_check']) as $f) 
+			if(isset($this->form[$f]) && !isset($stack[$f]))
+				$stack[$f] = $this->form[$f];
+
+		$stack = isset($stack) ? implode(' ', $stack) : '';
+
 		return 
-			n.implode('',$out).n;
+			(
+				(
+					$prefs['rah_comment_spam_field'] && 
+					trim(ps($prefs['rah_comment_spam_field']))
+				) ||
+				$this->wordcount($this->form['message']) ||
+				$this->charcount($this->form['message']) ||
+				$this->search(
+					$prefs['rah_comment_spam_spamwords'],
+					$stack,
+					$prefs['rah_comment_spam_maxspamwords']
+				) ||
+				$this->search(
+					array(
+						'https://',
+						'http://',
+						'ftp://',
+						'ftps://'
+					),
+					$this->form['message'],
+					$prefs['rah_comment_spam_urlcount']
+				) ||
+				$this->commentquota() || 
+				$this->typespeed() || 
+				$this->emaildns()
+			);
 	}
 
 /**
-	Finds needle from haystack
+	Finds needles from haystack. If $max is exceeded returns TRUE.
+	@param $needle mixed Needle to search for. Either comma-separated string or array.
+	@param $string string String to search.
+	@param $max int Maximum occurrences.
+	@param $count int Starting value.
+	@return bool
 */
 
-	function rah_comment_spam_find($needle,$string,$max=0,$count=0) {
-		
+	private function search($needle,$string,$max=0,$count=0) {
+
 		if(!$needle || !$string)
-			return;
-		
-		$string = strtolower(' '.$string.' ');
-		
-		if(!is_array($needle))
-			$needle = explode(',',strtolower($needle));
-		
-		foreach($needle as $find) {
-			$find = trim($find);
-			if(!empty($find))
-				$count += substr_count($string,$find);
+			return false;
+	
+		/*
+			Get the status of multibyte functions
+		*/
+
+		$mb = function_exists('mb_strtolower') && function_exists('mb_substr_count');
+
+		/*
+			Convert cases, turn needle to
+			array if string was provided
+		*/
+
+		$string = $mb ? mb_strtolower(' '.$string.' ','UTF-8') : strtolower(' '.$string.' ');
+
+		if(!is_array($needle)) {
+			$needle = $mb ? mb_strtolower($needle,'UTF-8') : strtolower($needle);
+			$needle = do_list($needle);
 		}
-		
+
+		foreach($needle as $find)
+			if(!empty($find))
+				$count += $mb ? mb_substr_count($string,$find,'UTF-8') : substr_count($string,$find);
+
 		if($count > $max)
-			return 1;
+			return true;
 	}
 
 /**
-	Count characters
+	Count characters, return TRUE if exceeds the limit.
+	@param $string string String to count
+	@return bool
 */
 
-	function rah_comment_spam_chars($string,$rs) {
-		extract($rs);
+	private function charcount($string) {
+		global $prefs;
+
+		if(!$string || (!$prefs['rah_comment_spam_minchars'] && !$prefs['rah_comment_spam_maxchars']))
+			return false;
+
+		$chars = function_exists('mb_strlen') ? mb_strlen($string, 'UTF-8') : strlen($string);
 		
-		if(!$string || (!$minchars && !$maxchars))
-			return;
-		
-		$chars = strlen($string);
-		
-		if(($maxchars && $maxchars < $chars) || ($minchars && $chars <= $minchars))
-			return 1;
-		
+		if(
+			($prefs['rah_comment_spam_maxchars'] && $prefs['rah_comment_spam_maxchars'] < $chars) || 
+			($prefs['rah_comment_spam_minchars'] && $chars <= $prefs['rah_comment_spam_minchars'])
+		)
+			return true;
 	}
 
 /**
-	Count words
+	Count words in string, return TRUE if exeeds the limit.
+	@param $string string String to count
+	@return bool
 */
 
-	function rah_comment_spam_words($string,$rs) {
-		extract($rs);
+	private function wordcount($string) {
+		global $prefs;
 		
-		if(!$string || (!$maxwords && !$minwords))
-			return;
+		if(!$string || (!$prefs['rah_comment_spam_maxwords'] && !$prefs['rah_comment_spam_minwords']))
+			return false;
 		
 		$words = count(explode(chr(32),$string));
 		
-		if(($maxwords && $maxwords < $words) || ($minwords && $words <= $minwords))
-			return 1;
+		if(
+			($prefs['rah_comment_spam_maxwords'] && $prefs['rah_comment_spam_maxwords'] < $words) || 
+			($prefs['rah_comment_spam_minwords'] && $words <= $prefs['rah_comment_spam_minwords'])
+		)
+			return true;
 	}
 
 /**
-	Limit comment posting
+	Limit user's comment posting.
+	@return bool TRUE when activity exceeds quota.
 */
 
-	function rah_comment_spam_limitcomments($rs) {
-		global $thisarticle;
-		extract($rs);
+	private function commentquota() {
+		global $thisarticle, $prefs;
 		
 		if(
-			$commentuse != 'yes' || 
-			!$commenttime || 
-			!$commentlimit || 
-			!isset($_SERVER['REMOTE_ADDR']) || 
-			($commentin == 'this' && !isset($thisarticle['id']))
+			!$prefs['rah_comment_spam_commentuse'] || 
+			!$prefs['rah_comment_spam_commentlimit'] ||
+			($prefs['rah_comment_spam_commentin'] == 'this' && !isset($thisarticle['thisid'])) ||
+			(($ip = doSlash(remote_addr())) && !$ip)
 		)
-			return;
+			return false;
+		
+		$preriod = (int) $prefs['rah_comment_spam_commenttime'];
 		
 		if(
 			safe_count(
 				'txp_discuss',
-				"ip='".doSlash($_SERVER['REMOTE_ADDR'])."' and ".
-				"UNIX_TIMESTAMP(posted) > (UNIX_TIMESTAMP(now())-$commenttime)".
-				(($commentin == 'this') ? " and parentid='".doSlash($thisarticle['id'])."'" : '')
-			) >= $commentlimit
+				"ip='$ip' and UNIX_TIMESTAMP(posted) > (UNIX_TIMESTAMP(now())-$preriod)".
+				($prefs['rah_comment_spam_commentin'] == 'this' ? " and parentid='".doSlash($thisarticle['thisid'])."'" : '')
+			) >= $prefs['rah_comment_spam_commentlimit']
 		)
-			return 1;
+			return true;
 	}
 
 /**
-	Check typing speed. Only bots write extra fast... and terminators,
-	and Chuck Norris. He doesn't type, he... just makes text appear.
+	Check typing speed, make sure the user fidled with the comment form.
+	@return bool TRUE when comment is considered as spam.
 */
 
-	function rah_comment_spam_type_speed($rs) {
+	private function typespeed() {
+		global $prefs;
 
-		extract($rs);
+		if(!$prefs['rah_comment_spam_use_type_detect'])
+			return false;
+		
+		$type_interval = (int) $prefs['rah_comment_spam_type_interval'];
+		$time = (int) ps('rah_comment_spam_time');
 
-		if($use_type_detect == 'no' || !is_numeric($type_interval))
-			return;
+		@$barrier = strtotime('now')-$type_interval;
+		$md5 = md5($prefs['rah_comment_spam_nonce'].$time);
 
-		$time = ps('rah_comment_spam_time');
-
-		if(!is_numeric($time))
-			return 1;
-
-		@$now = strtotime('now')-$type_interval;
-		$md5 = md5($nonce.$time);
-
-		if($md5 != ps('rah_comment_spam_nonce') || $time >= $now)
-			return 1;
-
+		if($md5 != ps('rah_comment_spam_nonce') || $time >= $barrier)
+			return true;
 	}
 
 /**
-	Check DNS
+	Check DNS records of the email address.
+	@return bool TRUE when comment is considered as spam.
 */
 
-	function rah_comment_spam_dns($checking,$rs) {
+	private function emaildns() {
+		global $prefs;
 		
-		extract($rs);
+		if(!$prefs['rah_comment_spam_emaildns'] || !trim($this->form['email']))
+			return false;
 		
-		if($emaildns == 'no' || !trim($checking))
-			return;
-		
-		$checking = explode('@',$checking);
-		
-		if(count($checking) != 2)
-			return 1;
-		
-		$domain = trim($checking[1]);
+		$domain = trim(end(explode('@',$this->form['email'])));
 
 		if(!$domain)
-			return 1;
-		
-		if(substr_count($domain,'.') == 0)
-			return 1;
+			return true;
 		
 		if(!function_exists('checkdnsrr'))
-			return;
+			return false;
 		
 		if(!(checkdnsrr($domain,'MX') || checkdnsrr($domain,'A')))
-			return 1;
+			return true;
+	}
+}
 
+/**
+	Spam protection method option
+	@param $name string Field name.
+	@param $val int Current value.
+	@return string HTML select field.
+*/
+
+	function rah_comment_spam_select_method($name, $val) {
+
+		foreach(array('block', 'moderate', 'spam') as $opt)
+			$out[$opt] = gTxt('rah_comment_spam_method_'.$opt);
+
+		return selectInput($name, $out, $val, '', '', $name);
 	}
 
 /**
-	Delivers the panels
+	Comment count range option
+	@param $name string Field name.
+	@param $val int Current value.
+	@return string HTML select field.
 */
 
-	function rah_comment_spam_page() {
-		global $step;
-		require_privs('rah_comment_spam');
-		rah_comment_spam_install();
-		if($step == 'rah_comment_spam_save')
-			$step();
-		else
-			rah_comment_spam_edit();
-	}
+	function rah_comment_spam_select_commentin($name, $val) {
 
-/**
-	Adds CSS/JS to <head> for the panel
-*/
-
-	function rah_comment_spam_head() {
+		foreach(array('all', 'this') as $opt)
+			$out[$opt] = gTxt('rah_comment_spam_commentin_'.$opt);
 		
-		global $event;
-		
-		if($event != 'rah_comment_spam')
-			return;
-		
-		echo <<<EOF
-			<style type="text/css">
-				#rah_comment_spam_container {
-					width: 950px;
-					margin: 0 auto;
-				}
-				#rah_comment_spam_container input.edit,
-				#rah_comment_spam_container textarea {
-					width: 940px;
-					padding: 0;
-				}
-				#rah_comment_spam_container select {
-					width: 640px;
-					padding: 0;
-				}
-				#rah_comment_spam_container .rah_comment_spam_more {
-					overflow: hidden;
-				}
-				#rah_comment_spam_limitations {
-					margin: 0 0 20px 0;
-				}
-				#rah_comment_spam_limitations label {
-					width: 190px;
-					float: left;
-					margin: 0;
-					padding: 0;
-				}
-				#rah_comment_spam_container #rah_comment_spam_limitations input.edit {
-					width: 170px;
-				}
-				#rah_comment_spam_container .rah_comment_spam_heading {
-					font-weight: 900;
-					padding: 5px 0;
-					margin: 0 0 10px 0;
-					border-top: 1px solid #ccc;
-					border-bottom: 1px solid #ccc;
-				}
-				#rah_comment_spam_container .rah_comment_spam_heading span {
-					cursor: pointer;
-					color: #963;
-				}
-				#rah_comment_spam_container .rah_comment_spam_heading span:hover {
-					text-decoration: underline;
-				}
-			</style>
-			<script type="text/javascript">
-				$(document).ready(function(){
-					$('.rah_comment_spam_more').hide();
-					$('.rah_comment_spam_heading').click(function(){
-						$(this).next('div.rah_comment_spam_more').slideToggle();
-					});
-				});
-			</script>
-EOF;
-	}
-	
-/**
-	Preferences panel
-*/
-
-	function rah_comment_spam_edit($message='') {
-
-		pagetop('Comment Antispam',$message);
-
-		extract(
-			rah_comment_spam_fetch(1)
-		);
-
-		$check = explode(',',$check);
-
-		global $event;
-		
-		if(empty($nonce) || $use_type_detect == 'no')
-			$nonce = 
-				md5(uniqid(rand(),true));
-
-		echo n.
-				'	<form method="post" action="index.php" id="rah_comment_spam_container">'.n.
-				'		<h1><strong>rah_comment_spam</strong> | Comment anti-spam tools</h1>'.n.
-				'		<p>&#187; <a href="?event=plugin&amp;step=plugin_help&amp;name=rah_comment_spam">Documentation</a></p>'.n.
-				'		<p>'.n.
-				'			<strong>Preferences:</strong>'.n.
-				'		</p>'.n.
-				'		<p title="Click to expand" class="rah_comment_spam_heading">'.n.
-				'			+ <span>Protection method and messages</span>'.n.
-				'		</p>'.n.
-				'		<div class="rah_comment_spam_more">'.n.
-				'			<p>'.n.
-				'				<label>'.n.
-				'					Protection method:<br />'.n.
-				'					<select name="method">'.n.
-				'						<option value="block"'.(($method == 'block') ? ' selected="selected"' : '').'>Block and don\'t save</option>'.n.
-				'						<option value="moderate"'.(($method == 'moderate') ? ' selected="selected"' : '').'>Moderate spam</option>'.n.
-				'						<option value="spam"'.(($method == 'spam') ? ' selected="selected"' : '').'>Flag as spam</option>'.n.
-				'					</select>'.n.
-				'				</label>'.n.
-				'			</p>'.n.
-				'			<p>'.n.
-				'				<label>'.n.
-				'					Error message displayed to the commentator:<br />'.n.
-				'					<input class="edit" type="text" name="message" value="'.$message.'" />'.n.
-				'				</label>'.n.
-				'			</p>'.n.
-				'		</div>'.n.
-				'		<p title="Click to expand" class="rah_comment_spam_heading">'.n.
-				'			+ <span>Set comment message lenght limitations</span>'.n.
-				'		</p>'.n.
-				'		<div id="rah_comment_spam_limitations" class="rah_comment_spam_more">'.n.
-				'			<p>'.n.
-				'				Fill every field only with even numbers greater than 0. Minimal value is 1. '.n.
-				'				If field is left empty or value is set to 0 (zero), the limit will be disabled.'.n.
-				'			</p>'.n.
-				'			<label>'.n.
-				'				Max words:<br />'.n.
-				'				<input class="edit" type="text" name="maxwords" value="'.$maxwords.'" />'.n.
-				'			</label>'.n.
-				'			<label>'.n.
-				'				Min words:<br />'.n.
-				'				<input class="edit" type="text" name="minwords" value="'.$minwords.'" />'.n.
-				'			</label>'.n.
-				'			<label>'.n.
-				'				Max characters:<br />'.n.
-				'				<input class="edit" type="text" name="maxchars" value="'.$maxchars.'" />'.n.
-				'			</label>'.n.
-				'			<label>'.n.
-				'				Min characters:<br />'.n.
-				'				<input class="edit" type="text" name="minchars" value="'.$minchars.'" />'.n.
-				'			</label>'.n.
-				'		</div>'.n.
-				'		<p title="Click to expand" class="rah_comment_spam_heading">'.n.
-				'			+ <span>URL and link limitations</span>'.n.
-				'		</p>'.n.
-				'		<div class="rah_comment_spam_more">'.n.
-				'			<p>'.n.
-				'				<label>'.n.
-				'					Maximum amount of URLs? If set to zero (0) no URLs are allowed in comments.<br />'.n.
-				'					<input class="edit" type="text" name="urlcount" value="'.$urlcount.'" />'.n.
-				'				</label>'.n.
-				'			</p>'.n.
-				'		</div>'.n.
-				'		<p title="Click to expand" class="rah_comment_spam_heading">'.n.
-				'			+ <span>Define spam word filters</span>'.n.
-				'		</p>'.n.
-				'		<div class="rah_comment_spam_more">'.n.
-				'			<p>'.n.
-				'				<label>'.n.
-				'					List of spam words. Comma separated if multiple:<br />'.n.
-				'					<textarea name="spamwords" cols="30" rows="8">'.$spamwords.'</textarea>'.n.
-				'				</label>'.n.
-				'			</p>'.n.
-				'			<p>'.n.
-				'				<label>'.n.
-				'					Max amount of spam words until comment becomes a spam (zero is instant):<br />'.n.
-				'					<input type="text" class="edit" name="maxspamwords" value="'.$maxspamwords.'" />'.n.
-				'				</label>'.n.
-				'			</p>'.n.
-				'			<p>Search spam words from:</p>'.n.
-				'			<p>'.n.
-				'				<label>'.n.
-				'					<input type="checkbox" name="check[]" value="message"'.((in_array('message',$check)) ? ' checked="checked"' : '').' />'.n.
-				'					Comment message'.n.
-				'				</label>'.n.
-				'				<label>'.n.
-				'					<input type="checkbox" name="check[]" value="web"'.((in_array('web',$check)) ? ' checked="checked"' : '').' />'.n.
-				'					Comment web input'.n.
-				'				</label>'.n.
-				'				<label>'.n.
-				'					<input type="checkbox" name="check[]" value="email"'.((in_array('email',$check)) ? ' checked="checked"' : '').' />'.n.
-				'					Comment email'.n.
-				'				</label>'.n.
-				'				<label>'.n.
-				'					<input type="checkbox" name="check[]" value="name"'.((in_array('name',$check)) ? ' checked="checked"' : '').' />'.n.
-				'					Commentator name'.n.
-				'				</label>'.n.
-				'			</p>'.n.
-				'		</div>'.n.
-				'		<p title="Click to expand" class="rah_comment_spam_heading">'.n.
-				'			+ <span>Timeintervals and posting limits</span>'.n.
-				'		</p>'.n.
-				'		<div class="rah_comment_spam_more">'.n.
-				'			<p>'.n.
-				'				Commentators will be detected based on the IP address. If the commentator exceeds the set activity '.n.
-				'				limit, the comment will be treated as spam.'.n.
-				'			</p>'.n.
-				'			<p>'.n.
-				'				<label>'.n.
-				'					Use the feature and limit posting?<br />'.n.
-				'					<select name="commentuse">'.n.
-				'						<option value="yes"'.(($commentuse == 'yes') ? ' selected="selected"' : '').'>Yes</option>'.n.
-				'						<option value="no"'.(($commentuse == 'no') ? ' selected="selected"' : '').'>No</option>'.n.
-				'					</select>'.n.
-				'				</label>'.n.
-				'			</p>'.n.
-				'			<p>'.n.
-				'				<label>'.n.
-				'					Count comments in articles:<br />'.n.
-				'					<select name="commentin">'.n.
-				'						<option value="all"'.(($commentin == 'all') ? ' selected="selected"' : '').'>All articles</option>'.n.
-				'						<option value="this"'.(($commentin == 'this') ? ' selected="selected"' : '').'>User currently viewing and commenting</option>'.n.
-				'					</select>'.n.
-				'				</label>'.n.
-				'			</p>'.n.
-				'			<p>'.n.
-				'				<label>'.n.
-				'					Maximum number of posts:<br />'.n.
-				'					<input class="edit" type="text" name="commentlimit" value="'.$commentlimit.'" />'.n.
-				'				</label>'.n.
-				'				<label>'.n.
-				'					Within last x seconds:<br />'.n.
-				'					<input class="edit" type="text" name="commenttime" value="'.$commenttime.'" />'.n.
-				'				</label>'.n.
-				'			</p>'.n.
-				'		</div>'.n.
-				'		<p title="Click to expand" class="rah_comment_spam_heading">'.n.
-				'			+ <span>Hidden spam trap</span>'.n.
-				'		</p>'.n.
-				'		<div class="rah_comment_spam_more">'.n.	
-				'			<p>'.n.
-				'				Adds a hidden spam trap field to the comment form. The field is made invisible to normal users with '.n.
-				'				<abbr title="Cascading Style Sheets">CSS</abbr>. If the field is filled, by bot usually, the comment is '.n.
-				'				marked as spam. Leave the field below empty if you don\'t want to use this feature.'.n.
-				'			</p>'.n.
-				'			<p>'.n.
-				'				<label>'.n.
-				'					Name of the field (if empty not used):'.n.
-				'					<input class="edit" type="text" name="field" value="'.$field.'" />'.n.
-				'				</label>'.n.
-				'			</p>'.n.
-				'		</div>'.n.
-				'		<p title="Click to expand" class="rah_comment_spam_heading">'.n.
-				'			+ <span>DNS validation</span>'.n.
-				'		</p>'.n.
-				'		<div class="rah_comment_spam_more">'.n.
-				'			<p>'.n.
-				'				Checks the email address\' <abbr title="Domain Name System">DNS</abbr> records.'.n.
-				'				If the email\'s domain is found to be non-existent, the comment will be treated as a spam.'.n.
-				'				The feature requires <a href="http://php.net/manual/en/function.checkdnsrr.php">checkdnsrr()</a> '.n.
-				'				and server must be allowed to make outgoing connections.'.n.
-				'			</p>'.n.
-				'			<p>'.n.
-				'				<label>'.n.
-				'					Use DNS validation?<br />'.n.
-				'					<select name="emaildns">'.n.
-				'						<option value="no"'.(($emaildns == 'no') ? ' selected="selected"' : '').'>No</option>'.n.
-				'						<option value="yes"'.(($emaildns == 'yes') ? ' selected="selected"' : '').'>Yes</option>'.n.
-				'					</select>'.n.
-				'				</label>'.n.
-				'			</p>'.n.
-				'		</div>'.n.
-				'		<p title="Click to expand" class="rah_comment_spam_heading">'.n.
-				'			+ <span>Require comment form interaction</span>'.n.
-				'		</p>'.n.
-				'		<div class="rah_comment_spam_more">'.n.
-				'			<p>'.n.
-				'				Makes sure that the user spent set amount of time writing the comment. Instant posters will be treated as spammers.'.n.
-				'				Usually it\'s recommended to keep this feature disabled. It can accidently block fast typers, if the required "typing" '.n.
-				'				time is set to too high, but it can also succesfully block spammer bots which might instantpost, unlike normal users. '.n.
-				'				The time is counted from intial article page request to the comment submitting. Be aware, the feature is only intended against mindless bots.'.n.
-				'			</p>'.n.
-				'			<p>'.n.
-				'				<label>'.n.
-				'					Use the feature validation, and block those that try to post without spending set period of time to writing the comment?<br />'.n.
-				'					<select name="use_type_detect">'.n.
-				'						<option value="no"'.(($use_type_detect == 'no') ? ' selected="selected"' : '').'>No</option>'.n.
-				'						<option value="yes"'.(($use_type_detect == 'yes') ? ' selected="selected"' : '').'>Yes</option>'.n.
-				'					</select>'.n.
-				'				</label>'.n.
-				'			</p>'.n.
-				'			<p>'.n.
-				'				<label>'.n.
-				'					The time required in seconds:'.n.
-				'					<input class="edit" type="text" name="type_interval" value="'.$type_interval.'" />'.n.
-				'				</label>'.n.
-				'			</p>'.n.
-				'		</div>'.n.
-				'		<p><input type="submit" value="Save settings" class="publish" /></p>'.n.
-				'		<input type="hidden" name="event" value="'.$event.'" />'.n.
-				'		<input type="hidden" name="step" value="rah_comment_spam_save" />'.n.
-				'		<input type="hidden" name="nonce" value="'.$nonce.'" />'.n.
-				'	</form>'.n;
+		return selectInput($name, $out, $val, '', '', $name);
 	}
 
 /**
-	Installation script
+	Textarea for preferences panel
+	@param $name string Field name.
+	@param $val int Current value.
+	@return string HTML textarea.
 */
 
-	function rah_comment_spam_install() {
-		safe_query(
-			"CREATE TABLE IF NOT EXISTS ".safe_pfx('rah_comment_spam')." (
-				`name` VARCHAR(255) NOT NULL ,
-				`value` LONGTEXT NOT NULL,
-			PRIMARY KEY(`name`))"
-		);
-		
-		foreach(rah_comment_spam_vars() as $key => $val) {
-			if(
-				safe_count(
-					'rah_comment_spam',
-					"name='".doSlash($key)."'"
-				) == 0
-			) 
-				safe_insert(
-					"rah_comment_spam",
-					"name='".doSlash($key)."',value='".doSlash($val)."'"
-				);
-		}
+	function rah_comment_spam_textarea($name, $val) {
+		return text_area($name, 100, 300, $val, $name);
 	}
 
 /**
-	Default preferences
+	Redirect to preferences panel
 */
 
-	function rah_comment_spam_vars() {
-		return  
-			array(
-				'spamwords' => '[URL], viagra, penis',
-				'method' => 'block',
-				'message' => 'Your comment was marked as spam.',
-				'field' => 'phone',
-				'urlcount' => '3',
-				'maxspamwords' => '0',
-				'maxwords' => '200',
-				'minwords' => '1',
-				'maxchars' => '2000',
-				'minchars' => '2',
-				'check' => 'message,web,name',
-				'commentlimit' => '10',
-				'commentin' => 'all',
-				'commentuse' => 'yes',
-				'commenttime' => '300',
-				'emaildns' => 'no',
-				'use_type_detect' => 'no',
-				'nonce' => '',
-				'type_interval' => '5'
-			)
-		;
+	function rah_comment_spam_prefs() {
+		header('Location: ?event=prefs#prefs-rah_comment_spam_method');
+		echo 
+			'<p>'.n.
+			'	<a href="?event=prefs#prefs-rah_comment_spam_method">'.gTxt('continue').'</a>'.n.
+			'</p>';
 	}
-
-/**
-	Saves preferences
-*/
-
-	function rah_comment_spam_save() {
-
-		foreach(rah_comment_spam_vars() as $key => $value) {
-			$val = ps($key);
-			if(is_array($val))
-				$val = implode(',',$val);
-			
-			safe_update(
-				'rah_comment_spam',
-				"value='".doSlash($val)."'",
-				"name='".doSlash($key)."'"
-			);
-		}
-
-		rah_comment_spam_edit('Spam preferences saved.');
-	}
-
-/**
-	Fetch preferences into array
-*/
-
-	function rah_comment_spam_fetch($escape=0) {
-		$out = array();
-
-		$rs = 
-			safe_rows(
-				'*',
-				'rah_comment_spam',
-				'1=1'
-			)
-		;
-
-		foreach($rs as $a) {
-			if($escape == 1) 
-				$a['value'] = htmlspecialchars($a['value']);
-			$out[$a['name']] = $a['value'];
-		}
-
-		return $out;
-	}
+?>
