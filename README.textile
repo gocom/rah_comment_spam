@@ -2,19 +2,7 @@ h1. rah_comment_spam
 
 p. Rah_comment_spam provides customizable anti-spam tools for "Textpattern's":http://www.textpattern.com comment system. Set minimum and maximum message length, filter spam words, validate email addresses, limit posting activity and set hidden spam traps. All from simple admin-side graphical user interface, no head first dive to code.
 
-* Version: 0.7
-* Updated: 2011/11/03 11:40 PM UTC
-
-h3. Table of Contents
-
-* "List of features":#list-of-features
-* "Requirements":#requirements
-* "Installation":#installation
-* "Configuration":#configuration
-* "Preferences":#preferences
-* "Changelog":#changelog
-
-h3(#list-of-features). List of features
+h2. List of features
 
 * Set comment message length limitations: minimum and maximum, words and characters.
 * Limit link posting.
@@ -25,7 +13,7 @@ h3(#list-of-features). List of features
 * Set quotas, limit users' comment posting activity.
 * Integrates with Textpattern's native preferences panel; no diving into code needed at all.
 
-h3(#requirements). Requirements
+h2. Requirements
 
 p. Rah_comment_spam's minimum requirements:
 
@@ -36,83 +24,101 @@ p. Recommended:
 
 * Textpattern 4.4.1 or newer.
 
-h3(#installation). Installation
+h2. Installation
 
 # Navigate to your Textpattern installation's Plugins panel (_Textpattern / Admin / Plugins_).
 # Copy and paste rah_comment_spam's plugin package code to the plugin installer textarea and run the automated setup.
 # After the setup is completed, activate the plugin and you're set.
 # You can customize the plugin's settings in Preferences panel's comment section (_Textpattern / Admin / Preferences_).
 
-h3(#configuration). Configuration
+h2. Configuration
 
 p. Once the plugin is installed, you can find set of new preferences in your Textpattern installation's Preferences panel. To configure rah_comment_spam's preferences navigate to _Admin/Preferences_ and take a look at the _Comments_ section. If you have commenting disabled on your site, you will have to toggle the _Enable comments_ option to see the section.
 
-h3(#preferences). Preferences
+h2. Preferences
 
 p. Looking at the Preference's panel's _Comments_ section, you should see set of options that weren't there before. Those are the options that the plugin offers. In total, there should be around 18 new toggle-able items. The offered plugin's options are as follows.
 
-p. *What to do comments detected as spam?*
-The option sets the action that is taken towards to comments flagged as a spam. There are three options you can choose from. The default option is _Save to moderation queue_ which saves the comments to moderation queue. The detected comments won't be visible to public, but are saved to moderation queue, and can be manually confirmed. The second option _Ignore, do not save_ blocks the comments. The comments won't be saved and the user is greeted with the message set in _Message displayed to the user when the comment was blocked_ option. The third and last option _Save and flag as spam_ saves the detected comment to the database as spam.
+h3. What to do comments detected as spam?
 
-p. *Message displayed to the user when the comment was blocked*
+p. The option sets the action that is taken towards to comments flagged as a spam. There are three options you can choose from. The default option is _Save to moderation queue_ which saves the comments to moderation queue. The detected comments won't be visible to public, but are saved to moderation queue, and can be manually confirmed. The second option _Ignore, do not save_ blocks the comments. The comments won't be saved and the user is greeted with the message set in _Message displayed to the user when the comment was blocked_ option. The third and last option _Save and flag as spam_ saves the detected comment to the database as spam.
+
+h3. Message displayed to the user when the comment was blocked
+
 Sets the message that is shown to users when their comment is blocked by the filters. The message is only used when the protection method above is set to _Ignore, do not save_. With others, Textpattern's build in language strings are used.
 
-p. *List of spam words*
-Sets words/terms that are considered as something that spam would contain. Separate multiple words with commas (@,@). Used words are incase-sensitive. Example value: @viagra, wares, wowgold@.
+h3. List of spam words
 
-p. *Search spam words from following fields*
-Sets which fields are filtered for spam words. Use comma-separated list of field names. Available values are @name@, @email@, @web@ and @message@. Default option is @name, email, web, message@.
+p. Sets words/terms that are considered as something that spam would contain. Separate multiple words with commas (@,@). Used words are incase-sensitive. Example value: @viagra, wares, wowgold@.
 
-p. *Maximum number of spam words until the comment is considered as spam*
-Sets the maximum number of spam words a comment can have until it's considered as spam. The lower the number, the stricter the filter is. Recommended value is between 2 to 10.
+h3. Search spam words from following fields
 
-p. *Number of allowed URLs*
-Option sets comment message's URL limit. If a comment contains more URLs than the options allows, the comment is considered as spam.
+p. Sets which fields are filtered for spam words. Use comma-separated list of field names. Available values are @name@, @email@, @web@ and @message@. Default option is @name, email, web, message@.
 
-p. *Minimum number of words*
-Required minimum length of comment message in words. Shorter messages are considered as spam. Recommended value is @1@ to @3@.
+h3. Maximum number of spam words until the comment is considered as spam
 
-p. *Maximum number of words*
-Maximum length of comment message in words. Longer messages are considered as spam. Note that message's total size is limited to 65535 bytes (equals to around 65535 ASCII characters).
+p. Sets the maximum number of spam words a comment can have until it's considered as spam. The lower the number, the stricter the filter is. Recommended value is between 2 to 10.
 
-p. *Minimum number of characters*
-Required minimum length of comment in characters. Shorter messages are considers as spam. Recommended setting is @1@ to @10@.
+h3. Number of allowed URLs
 
-p. *Maximum number of characters*
-Maximum length of comment in characters. Longer messages are considers as spam. Note that message's total size is limited to 65535 bytes. Valid values range from 0 to 65535 (equals to around 65535 ASCII characters).
+p. Option sets comment message's URL limit. If a comment contains more URLs than the options allows, the comment is considered as spam.
 
-p. *Name of hidden spam trap field*
-If set, hidden spam trap field is added to the comment form. The field will be hidden with CSS, and if the field is filled, the comment is considered as spam. Default value is _phone_. Empty the field to disable the spam trap.
+h3. Minimum number of words
 
-p. *Use quotas, limit users' comment posting activity?*
-If set to _Yes_, users comment posting activity is limited. Comments going over the quota are considered as spam. Users are identified by IP addresses.
+p. Required minimum length of comment message in words. Shorter messages are considered as spam. Recommended value is @1@ to @3@.
 
-p. *Users' comment quota limit*
-Sets the user's quota limit. Default is ten (@10@) comments per user.
+h3. Maximum number of words
 
-p. *Count users' comments towards quota in*
-Sets which comments in which articles are counted towards the quota limit. By default user's comments in any article are taken into count. Available settings are _In all articles_, counts comments site-wide, and _In current article_ which counts only comments in the current article the new comment is being posted to.
+p. Maximum length of comment message in words. Longer messages are considered as spam. Note that message's total size is limited to 65535 bytes (equals to around 65535 ASCII characters).
 
-p. *Quota resets every number of seconds*
-Sets the timespan used in the activity limiting. Comments older than this are not counted towards the quota limit. The time is set in seconds. For example setting the option to @600@, would count an user's comments from the last ten minutes, and if the number goes over the quota, then the comment is considered as spam.
+h3. Minimum number of characters
 
-p. *Check email's DNS records?*
-If set _Yes_, email address' DNS records are checked. If the domain is found to be non-existent, the comment is considered as spam. The feature requires "checkdnsrr()":http://php.net/manual/en/function.checkdnsrr.php function and the server must be allowed to make outgoing connections.
+p. Required minimum length of comment in characters. Shorter messages are considers as spam. Recommended setting is @1@ to @10@.
 
-p. *Check the time user spent writing the comment?*
-Makes sure that the user spent set amount of time writing the comment. Instant posters will be treated as spammers. Usually it's recommended to keep this feature disabled. It can accidentally block fast writers if the required time is set to too high, but it can also successfully block spam bots which might try to post comments instantly, without interacting with the comment form. The time is counted from the initial article page load to the comment's submitting.
+h3. Maximum number of characters
 
-p. *Minimum time required to be spent writing a comment?*
-Sets the required interaction time in seconds. Default is @5@. Higher values are not recommended usability-wise. If you set the value higher than 5 seconds, consider adding JavaScript based counter to the comment form that informs the users how much they have to wait. For counters I recommend checking out "jQuery's plugin repository":http://plugins.jquery.com/plugin-tags/countdown.
+p. Maximum length of comment in characters. Longer messages are considers as spam. Note that message's total size is limited to 65535 bytes. Valid values range from 0 to 65535 (equals to around 65535 ASCII characters).
 
-h3(#changelog). Changelog
+h3. Name of hidden spam trap field
 
-p. *Version 0.7*
+p. If set, hidden spam trap field is added to the comment form. The field will be hidden with CSS, and if the field is filled, the comment is considered as spam. Default value is _phone_. Empty the field to disable the spam trap.
+
+h3. Use quotas, limit users' comment posting activity?
+
+p. If set to _Yes_, users comment posting activity is limited. Comments going over the quota are considered as spam. Users are identified by IP addresses.
+
+h3. Users' comment quota limit
+
+p. Sets the user's quota limit. Default is ten (@10@) comments per user.
+
+h3. Count users' comments towards quota in
+
+p. Sets which comments in which articles are counted towards the quota limit. By default user's comments in any article are taken into count. Available settings are _In all articles_, counts comments site-wide, and _In current article_ which counts only comments in the current article the new comment is being posted to.
+
+h3. Quota resets every number of seconds
+
+p. Sets the timespan used in the activity limiting. Comments older than this are not counted towards the quota limit. The time is set in seconds. For example setting the option to @600@, would count an user's comments from the last ten minutes, and if the number goes over the quota, then the comment is considered as spam.
+
+h3. Check email's DNS records?
+
+p. If set _Yes_, email address' DNS records are checked. If the domain is found to be non-existent, the comment is considered as spam. The feature requires "checkdnsrr()":http://php.net/manual/en/function.checkdnsrr.php function and the server must be allowed to make outgoing connections.
+
+h3. Check the time user spent writing the comment?
+
+p. Makes sure that the user spent set amount of time writing the comment. Instant posters will be treated as spammers. Usually it's recommended to keep this feature disabled. It can accidentally block fast writers if the required time is set to too high, but it can also successfully block spam bots which might try to post comments instantly, without interacting with the comment form. The time is counted from the initial article page load to the comment's submitting.
+
+h3. Minimum time required to be spent writing a comment?
+
+p. Sets the required interaction time in seconds. Default is @5@. Higher values are not recommended usability-wise. If you set the value higher than 5 seconds, consider adding JavaScript based counter to the comment form that informs the users how much they have to wait. For counters I recommend checking out "jQuery's plugin repository":http://plugins.jquery.com/plugin-tags/countdown.
+
+h2. Changelog
+
+h3. Version 0.7 - 2011/11/03
 
 * Fixed: Update cached version number after running the installer.
 * Updated help file.
 
-p. *Version 0.6*
+h3. Version 0.6 - 2011/09/09
 
 * Fixed: Comment quota limit's _In current article_ option. Previously counting didn't work when the _in current article_ option was selected.
 * Added: language string support. The interface now is translatable using Textpacks.
@@ -124,12 +130,12 @@ p. *Version 0.6*
 * Now requires PHP5 or newer. PHP version 5.3 or newer is recommended. PHP 4 support has been dropped.
 * For full feature compatibility Textpattern version 4.2.0 or newer is required. Textpattern v4.4.1 or newer is recommended.
 
-p. *Version 0.5*
+h3. Version 0.5 - 2010/09/15
 
 * Added option to check the time the user used to write the comment and block instant posters. "As discussed here":http://forum.textpattern.com/viewtopic.php?id=34535.
 * Removed unused HTML field ids and sizes from the backend pane.
 
-p. *Version 0.4*
+h3. Version 0.4 - 2010/08/02
 
 * Added: now also filters @https://@, @ftp://@ and @ftps://@ protocols, not just links starting with @http://@.
 * Changed posting limit feature's maximum post setting from _"more than"_ to _"equals or more than"_. Setting the value to zero/or leaving it empty will disable the feature.
@@ -139,15 +145,15 @@ p. *Version 0.4*
 * Merged @rah_comment_spam_urlcount()@ and @rah_comment_spam_spamwords()@.
 * Now admin panel uses same type of sliding panels as seen in "rah_sitemap":http://rahforum.biz/plugins/rah_sitemap.
 
-p. *Version 0.3*
+h3. Version 0.3 - 2009/12/02
 
 * Added email DNS validation.
 
-p. *Version 0.2.1*
+h3. Version 0.2.1 - 2009/08/15
 
 * Made writing spam definition list less strict. Now allows double commas, spaces and so on. "Thanks Robert.":http://forum.textpattern.com/viewtopic.php?pid=212943#p212943
 
-p. *Version 0.2*
+h3. Version 0.2 - 2009/05/04
 
 * Added user based time relative posting limit.
 * Fixed hidden spam trap input's escaping.
@@ -156,14 +162,14 @@ p. *Version 0.2*
 * Improved installation script.
 * Merged SQL queries.
 
-p. *Version 0.1.3*
+h3. Version 0.1.3 - 2009/03/12
 
 * Fixed forgotten @strtolower()@.
 
-p. *Version 0.1.2*
+h3. Version 0.1.2 - 2009/01/22
 
 * Removed typo from admin panel: "Documention" to "Documentation".
 
-p. *Version 0.1*
+h3. Version 0.1 - 2008/09/07
 
-* First release.
+* Initial release.
