@@ -39,7 +39,7 @@
 		if($step == 'deleted') {
 			safe_delete(
 				'txp_prefs',
-				"name like 'rah_comment_spam_%'"
+				"name like 'rah\_comment\_spam\_%'"
 			);
 			return;
 		}
