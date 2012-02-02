@@ -1,15 +1,19 @@
-<?php	##################
-	#
-	#	rah_comment_spam-plugin for Textpattern
-	#	version 0.7
-	#	by Jukka Svahn
-	#	http://rahforum.biz
-	#
-	#	Copyright (C) 2011 Jukka Svahn <http://rahforum.biz>
-	#	Licensed under GNU Genral Public License version 2
-	#	http://www.gnu.org/licenses/gpl-2.0.html
-	#
-	###################
+<?php
+
+/**
+ * Rah_comment_spam plugin for Textpattern CMS
+ *
+ * @author Jukka Svahn
+ * @date 2008-
+ * @license GNU GPLv2
+ * @link http://rahforum.biz/plugins/rah_comment_spam
+ *
+ * Requires Textpattern v4.2.0 or newer, and PHP5 or newer
+ *
+ * Copyright (C) 2012 Jukka Svahn <http://rahforum.biz>
+ * Licensed under GNU Genral Public License version 2
+ * http://www.gnu.org/licenses/gpl-2.0.html
+ */
 
 	if(@txpinterface == 'admin') {
 		rah_comment_spam_install();
@@ -22,12 +26,12 @@
 	}
 
 /**
-	Installer
-	@param $event string Admin-side event.
-	@param $step string Admin-side, plugin-lifecycle step.
-*/
+ * Installer
+ * @param string $event Admin-side event.
+ * @param string $step Admin-side, plugin-lifecycle step.
+ */
 
-	function rah_comment_spam_install($event='',$step='') {
+	function rah_comment_spam_install($event='', $step='') {
 
 		if($step == 'deleted') {
 			safe_delete(
@@ -202,9 +206,9 @@
 	}
 
 /**
-	Check for spam
-	@param $event string Callback event.
-*/
+ * Check for spam
+ * @param string $event Callback event.
+ */
 
 	function rah_comment_spam_register($event='') {
 		global $prefs;
@@ -269,17 +273,17 @@
 	}
 
 /**
-	Contains anti-spam tools
-*/
+ * Contains anti-spam tools
+ */
 
 class rah_comment_spam {
 
 	private $form = array();
 
-/**
-	Filter comment
-	@return bool TRUE if comment is detected as spam.
-*/
+	/**
+	 * Filter comment
+	 * @return bool TRUE if comment is detected as spam.
+	 */
 
 	public function is_spam() {
 		global $prefs;
@@ -321,14 +325,14 @@ class rah_comment_spam {
 			);
 	}
 
-/**
-	Finds needles from haystack. If $max is exceeded returns TRUE.
-	@param $needle mixed Needle to search for. Either comma-separated string or array.
-	@param $string string String to search.
-	@param $max int Maximum occurrences.
-	@param $count int Starting value.
-	@return bool
-*/
+	/**
+	 * Finds needles from haystack. If $max is exceeded returns TRUE.
+	 * @param mixed $needle Needle to search for. Either comma-separated string or array.
+	 * @param string $string String to search.
+	 * @param int $max Maximum occurrences.
+	 * @param int $count Starting value.
+	 * @return bool
+	 */
 
 	private function search($needle,$string,$max=0,$count=0) {
 
@@ -361,11 +365,11 @@ class rah_comment_spam {
 			return true;
 	}
 
-/**
-	Count characters, return TRUE if exceeds the limit.
-	@param $string string String to count
-	@return bool
-*/
+	/**
+	 * Count characters, return TRUE if exceeds the limit.
+	 * @param string $string String to count
+	 * @return bool
+	 */
 
 	private function charcount($string) {
 		global $prefs;
@@ -382,11 +386,11 @@ class rah_comment_spam {
 			return true;
 	}
 
-/**
-	Count words in string, return TRUE if exeeds the limit.
-	@param $string string String to count
-	@return bool
-*/
+	/**
+	 * Count words in a string
+	 * @param string $string String to count
+	 * @return bool TRUE if exceeds the limit.
+	 */
 
 	private function wordcount($string) {
 		global $prefs;
@@ -403,10 +407,10 @@ class rah_comment_spam {
 			return true;
 	}
 
-/**
-	Limit user's comment posting.
-	@return bool TRUE when activity exceeds quota.
-*/
+	/**
+	 * Limit user's comment posting.
+	 * @return bool TRUE when activity exceeds quota.
+	 */
 
 	private function commentquota() {
 		global $thisarticle, $prefs;
@@ -431,10 +435,10 @@ class rah_comment_spam {
 			return true;
 	}
 
-/**
-	Check typing speed, make sure the user fidled with the comment form.
-	@return bool TRUE when comment is considered as spam.
-*/
+	/**
+	 * Check typing speed, make sure the user fidled with the comment form.
+	 * @return bool TRUE when comment is considered as spam.
+	 */
 
 	private function typespeed() {
 		global $prefs;
@@ -452,10 +456,10 @@ class rah_comment_spam {
 			return true;
 	}
 
-/**
-	Check DNS records of the email address.
-	@return bool TRUE when comment is considered as spam.
-*/
+	/**
+	 * Check DNS records for the email address.
+	 * @return bool TRUE when comment is considered as spam.
+	 */
 
 	private function emaildns() {
 		global $prefs;
@@ -477,11 +481,11 @@ class rah_comment_spam {
 }
 
 /**
-	Spam protection method option
-	@param $name string Field name.
-	@param $val int Current value.
-	@return string HTML select field.
-*/
+ * Spam protection method option
+ * @param string $name Field name.
+ * @param string $val Current value.
+ * @return string HTML select field.
+ */
 
 	function rah_comment_spam_select_method($name, $val) {
 
@@ -492,11 +496,11 @@ class rah_comment_spam {
 	}
 
 /**
-	Comment count range option
-	@param $name string Field name.
-	@param $val int Current value.
-	@return string HTML select field.
-*/
+ * Comment count range option
+ * @param string $name Field name.
+ * @param string $val Current value.
+ * @return string HTML select field.
+ */
 
 	function rah_comment_spam_select_commentin($name, $val) {
 
@@ -507,19 +511,19 @@ class rah_comment_spam {
 	}
 
 /**
-	Textarea for preferences panel
-	@param $name string Field name.
-	@param $val int Current value.
-	@return string HTML textarea.
-*/
+ * Textarea for preferences panel
+ * @param string $name Field name.
+ * @param string $val Current value.
+ * @return string HTML textarea.
+ */
 
 	function rah_comment_spam_textarea($name, $val) {
 		return text_area($name, 100, 300, $val, $name);
 	}
 
 /**
-	Redirect to preferences panel
-*/
+ * Redirect to preferences panel
+ */
 
 	function rah_comment_spam_prefs() {
 		header('Location: ?event=prefs#prefs-rah_comment_spam_method');
