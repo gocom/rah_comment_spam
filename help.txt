@@ -1,0 +1,70 @@
+h1. rah_comment_spam
+
+p. rah_comment_spam is an customizable anti-spam tool. Prevent comment spam by adding various custom filters via simple interface under Extensions. Limit message lenghts, filter spam words and set spam prevention method: block, moderate or mark as spam, and more.
+
+* Version: 0.3
+* Updated: 2009/12/02 10:00 PM GMT+2
+
+h3. Table of Contents
+
+* "List of features":#list-of-features
+* "Requirements":#requirements
+* "Installation and usage":#installation-and-usage
+* "Changelog":#changelog
+
+h3(#list-of-features). List of features
+
+* Simple preferences interface under Textpattern > Extensions > Comment antispam-tab.
+* Set comment message lenght limitations: min and max, words and characters.
+* Limit amount of link untill comment becomes spam.
+* Define spam words and substrings, and set the limit how many spam words are needed untill comment becomes spam.
+* Customize error message that is shown to people who post spam.
+* Define a custom hidden spam trap field.
+* Change the spam protection method.
+* Comment posting limit per set of time.
+
+h3(#requirements). Requirements
+
+* Textpattern 4.0.3+
+
+p. Recommended:
+
+* PHP 5.1.2+
+* Textpattern 4.0.6+
+
+h3(#installation-and-usage). Installation and usage
+
+* Paste plugin code to the plugin installer textarea and run the automatic setup
+* Then activate the plugin.
+* Customize the settings under Textpattern > Extensions > Comment antispam (Essential: remember to visit the Comment antispam page right after activating the plugin).
+
+h3(#changelog). Changelog
+
+p. *Version 0.3*
+
+* Added email DNS validation.
+
+p. *Version 0.2.1*
+
+* Made writing spam defition list less strict. Now allows double commas, spaces and so on. "Thanks Robert.":http://forum.textpattern.com/viewtopic.php?pid=212943#p212943
+
+p. *Version 0.2*
+
+* Added user based time relative posting limit.
+* Fixed hidden spamtrap input's escaping.
+* Improved comment posting evaluating speed.
+* Merged install, save, update and fetch arrays.
+* Improved installation script.
+* Merged SQL queries.
+
+p. *Version 0.1.3*
+
+* Fixed forgotten @strtolower()@.
+
+p. *Version 0.1.2*
+
+* Removed typo from admin panel: "Documention" to "Documentation".
+
+p. *Version 0.1*
+
+* First release
