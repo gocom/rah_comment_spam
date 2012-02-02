@@ -1,9 +1,9 @@
 h1. rah_comment_spam
 
-p. rah_comment_spam is an customizable anti-spam tool. Prevent comment spam by adding various custom filters via simple interface under Extensions. Limit message lenghts, filter spam words and set spam prevention method: block, moderate or mark as spam, and more.
+p. Rah_comment_spam ships with customizable anti-spam tools. Set minimum and maximum message lenght, filter spam words, validate email addresses, limit posting activity and set hidden spam traps. Toggle spam prevention method between block, moderate or mark as spam. All from simple interface, no head first dive to code.
 
-* Version: 0.3
-* Updated: 2009/12/02 10:00 PM GMT+2
+* Version: 0.4
+* Updated: 2010/08/02 03:00 PM UTC
 
 h3. Table of Contents
 
@@ -14,31 +14,44 @@ h3. Table of Contents
 
 h3(#list-of-features). List of features
 
-* Simple preferences interface under Textpattern > Extensions > Comment antispam-tab.
-* Set comment message lenght limitations: min and max, words and characters.
-* Limit amount of link untill comment becomes spam.
-* Define spam words and substrings, and set the limit how many spam words are needed untill comment becomes spam.
-* Customize error message that is shown to people who post spam.
-* Define a custom hidden spam trap field.
+* Set comment message lenght limitations: minimum and maximum, words and characters.
+* Limit link posting.
+* Define spam words, and set the limit how many spam words are needed untill comment becomes spam.
+* Show customizable error messages when comment is blocked.
+* Set a custom hidden spam trap field.
 * Change the spam protection method.
 * Comment posting limit per set of time.
+* Comes with simple preferences interface; no diving into code needed at all.
 
 h3(#requirements). Requirements
 
-* Textpattern 4.0.3+
+p. Rah_comment_spam's minimum requirements:
+
+* Textpattern 4.0.7+
 
 p. Recommended:
 
-* PHP 5.1.2+
-* Textpattern 4.0.6+
+* Textpattern 4.2.0+
+* jQuery for the admin panel (included with Textpattern).
 
 h3(#installation-and-usage). Installation and usage
 
-* Paste plugin code to the plugin installer textarea and run the automatic setup
-* Then activate the plugin.
-* Customize the settings under Textpattern > Extensions > Comment antispam (Essential: remember to visit the Comment antispam page right after activating the plugin).
+# Navigate to your Textpattern installation's Plugin panel (_Textpattern / Admin / Plugins_).
+# Paste rah_comment_spam's plugin code to the plugin installer textarea and run the automated setup.
+# After the setup is completed, activate the plugin and you're set.
+# You can customize the plugin's settings in the plugin's panel: _Textpattern / Extensions / Comment antispam_.
 
 h3(#changelog). Changelog
+
+p. *Version 0.4*
+
+* Added: now also filters @https://@, @ftp://@ and @ftps://@ protocols, not just links starting with @http://@.
+* Changed posting limit feature's maximum post setting from _"more than"_ to _"equals or more than"_. Setting the value to zero/or leaving it empty will disable the feature.
+* Changed filtering method from _and_ to _or_. This means, when the comment gots flagged by a filter for the first time, the spam filtering process ends instead going thru all the checks which are no longer needed. Gives slight performance boost.
+* From version 0.4 onwards requires TXP 4.0.7 or newer.
+* Now posting limits are counted barely by MySQL. No involment of PHP.
+* Merged @rah_comment_spam_urlcount()@ and @rah_comment_spam_spamwords()@.
+* Now admin panel uses same type of sliding panels as seen in "rah_sitemap":http://rahforum.biz/plugins/rah_sitemap.
 
 p. *Version 0.3*
 
