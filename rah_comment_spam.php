@@ -17,12 +17,13 @@
 
 	if(@txpinterface == 'admin') {
 		rah_comment_spam_install();
-		add_privs('plugin_prefs.rah_comment_spam','1,2');
-		register_callback('rah_comment_spam_prefs','plugin_prefs.rah_comment_spam');
-		register_callback('rah_comment_spam_install','plugin_lifecycle.rah_comment_spam');
-	} else {
-		register_callback('rah_comment_spam_register','comment.save');
-		register_callback('rah_comment_spam_register','comment.form');
+		add_privs('plugin_prefs.rah_comment_spam', '1,2');
+		register_callback('rah_comment_spam_prefs', 'plugin_prefs.rah_comment_spam');
+		register_callback('rah_comment_spam_install', 'plugin_lifecycle.rah_comment_spam');
+	}
+	elseif(@txpinterface == 'public') {
+		register_callback('rah_comment_spam_register', 'comment.save');
+		register_callback('rah_comment_spam_register', 'comment.form');
 	}
 
 /**
