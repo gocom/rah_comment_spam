@@ -1,7 +1,7 @@
 <?php	##################
 	#
 	#	rah_comment_spam-plugin for Textpattern
-	#	version 0.4
+	#	version 0.5
 	#	by Jukka Svahn
 	#	http://rahforum.biz
 	#
@@ -27,7 +27,7 @@
 		
 		@$rs = rah_comment_spam_fetch();
 		
-		if(!isset($rs['version'])) {
+		if(!isset($rs['type_interval'])) {
 			rah_comment_spam_install();
 			$rs = rah_comment_spam_fetch();
 		}
@@ -74,6 +74,10 @@
 				$rs
 			) ||
 			
+			rah_comment_spam_type_speed(
+				$rs
+			) ||
+			
 			rah_comment_spam_dns($form['email'],$rs)
 		
 		) {
@@ -95,22 +99,42 @@
 */
 
 	function rah_comment_spam_form() {
-		$field = 
-			fetch(
-				'value',
-				'rah_comment_spam',
-				'name',
-				'field'
-			);
-
-		if(!empty($field))
-			return 
-				n.
-				'<div style="display:none;">'.
-					'<input type="text" value="'.htmlspecialchars(ps($field)).'" name="'.htmlspecialchars($field).'" />'.
-				'</div>'
-				.n
+		
+		@$rs = rah_comment_spam_fetch();
+		
+		if(!isset($rs['type_interval']))
+			return;
+		
+		$out = array();
+		
+		if($rs['use_type_detect'] == 'yes') {
+			
+			if(
+				ps('rah_comment_spam_nonce') || ps('rah_comment_spam_time')
+			) {
+				$nonce = htmlspecialchars(ps('rah_comment_spam_nonce'));
+				$time = htmlspecialchars(ps('rah_comment_spam_time'));
+			} else {
+				@$time = strtotime('now');
+				$nonce = md5($rs['nonce'].$time);
+			}
+			
+			
+			$out[] =
+				'<input type="hidden" name="rah_comment_spam_nonce" value="'.$nonce.'" />'.
+				'<input type="hidden" name="rah_comment_spam_time" value="'.$time.'" />'
 			;
+		}
+
+		if(!empty($rs['field']))
+			$out[] = 
+				'<div style="display:none;">'.
+					'<input type="text" value="'.htmlspecialchars(ps($rs['field'])).'" name="'.htmlspecialchars($rs['field']).'" />'.
+				'</div>'
+			;
+		
+		return 
+			n.implode('',$out).n;
 	}
 
 /**
@@ -196,6 +220,31 @@
 			) >= $commentlimit
 		)
 			return 1;
+	}
+
+/**
+	Check typing speed. Only bots write extra fast... and terminators,
+	and Chuck Norris. He doesn't type, he... just makes text appear.
+*/
+
+	function rah_comment_spam_type_speed($rs) {
+
+		extract($rs);
+
+		if($use_type_detect == 'no' || !is_numeric($type_interval))
+			return;
+
+		$time = ps('rah_comment_spam_time');
+
+		if(!is_numeric($time))
+			return 1;
+
+		@$now = strtotime('now')-$type_interval;
+		$md5 = md5($nonce.$time);
+
+		if($md5 != ps('rah_comment_spam_nonce') || $time >= $now)
+			return 1;
+
 	}
 
 /**
@@ -326,6 +375,10 @@ EOF;
 		$check = explode(',',$check);
 
 		global $event;
+		
+		if(empty($nonce) || $use_type_detect == 'no')
+			$nonce = 
+				md5(uniqid(rand(),true));
 
 		echo n.
 				'	<form method="post" action="index.php" id="rah_comment_spam_container">'.n.
@@ -404,7 +457,7 @@ EOF;
 				'			<p>'.n.
 				'				<label>'.n.
 				'					Max amount of spam words until comment becomes a spam (zero is instant):<br />'.n.
-				'					<input type="text" class="edit" name="maxspamwords" size="4" value="'.$maxspamwords.'" />'.n.
+				'					<input type="text" class="edit" name="maxspamwords" value="'.$maxspamwords.'" />'.n.
 				'				</label>'.n.
 				'			</p>'.n.
 				'			<p>Search spam words from:</p>'.n.
@@ -476,7 +529,7 @@ EOF;
 				'			<p>'.n.
 				'				<label>'.n.
 				'					Name of the field (if empty not used):'.n.
-				'					<input class="edit" type="text" name="field" size="80" value="'.$field.'" />'.n.
+				'					<input class="edit" type="text" name="field" value="'.$field.'" />'.n.
 				'				</label>'.n.
 				'			</p>'.n.
 				'		</div>'.n.
@@ -493,16 +546,43 @@ EOF;
 				'			<p>'.n.
 				'				<label>'.n.
 				'					Use DNS validation?<br />'.n.
-				'					<select id="emaildns" name="emaildns">'.n.
+				'					<select name="emaildns">'.n.
 				'						<option value="no"'.(($emaildns == 'no') ? ' selected="selected"' : '').'>No</option>'.n.
 				'						<option value="yes"'.(($emaildns == 'yes') ? ' selected="selected"' : '').'>Yes</option>'.n.
 				'					</select>'.n.
 				'				</label>'.n.
 				'			</p>'.n.
 				'		</div>'.n.
+				'		<p title="Click to expand" class="rah_comment_spam_heading">'.n.
+				'			+ <span>Require comment form interaction</span>'.n.
+				'		</p>'.n.
+				'		<div class="rah_comment_spam_more">'.n.
+				'			<p>'.n.
+				'				Makes sure that the user spent set amount of time writing the comment. Instant posters will be treated as spammers.'.n.
+				'				Usually it\'s recommended to keep this feature disabled. It can accidently block fast typers, if the required "typing" '.n.
+				'				time is set to too high, but it can also succesfully block spammer bots which might instantpost, unlike normal users. '.n.
+				'				The time is counted from intial article page request to the comment submitting. Be aware, the feature is only intended against mindless bots.'.n.
+				'			</p>'.n.
+				'			<p>'.n.
+				'				<label>'.n.
+				'					Use the feature validation, and block those that try to post without spending set period of time to writing the comment?<br />'.n.
+				'					<select name="use_type_detect">'.n.
+				'						<option value="no"'.(($use_type_detect == 'no') ? ' selected="selected"' : '').'>No</option>'.n.
+				'						<option value="yes"'.(($use_type_detect == 'yes') ? ' selected="selected"' : '').'>Yes</option>'.n.
+				'					</select>'.n.
+				'				</label>'.n.
+				'			</p>'.n.
+				'			<p>'.n.
+				'				<label>'.n.
+				'					The time required in seconds:'.n.
+				'					<input class="edit" type="text" name="type_interval" value="'.$type_interval.'" />'.n.
+				'				</label>'.n.
+				'			</p>'.n.
+				'		</div>'.n.
 				'		<p><input type="submit" value="Save settings" class="publish" /></p>'.n.
 				'		<input type="hidden" name="event" value="'.$event.'" />'.n.
 				'		<input type="hidden" name="step" value="rah_comment_spam_save" />'.n.
+				'		<input type="hidden" name="nonce" value="'.$nonce.'" />'.n.
 				'	</form>'.n;
 	}
 
@@ -555,7 +635,9 @@ EOF;
 				'commentuse' => 'yes',
 				'commenttime' => '300',
 				'emaildns' => 'no',
-				'version' => '0.4'
+				'use_type_detect' => 'no',
+				'nonce' => '',
+				'type_interval' => '5'
 			)
 		;
 	}
@@ -565,7 +647,7 @@ EOF;
 */
 
 	function rah_comment_spam_save() {
-		
+
 		foreach(rah_comment_spam_vars() as $key => $value) {
 			$val = ps($key);
 			if(is_array($val))
@@ -577,7 +659,7 @@ EOF;
 				"name='".doSlash($key)."'"
 			);
 		}
-		
+
 		rah_comment_spam_edit('Spam preferences saved.');
 	}
 

@@ -2,8 +2,8 @@ h1. rah_comment_spam
 
 p. Rah_comment_spam ships with customizable anti-spam tools. Set minimum and maximum message lenght, filter spam words, validate email addresses, limit posting activity and set hidden spam traps. Toggle spam prevention method between block, moderate or mark as spam. All from simple interface, no head first dive to code.
 
-* Version: 0.4
-* Updated: 2010/08/02 03:00 PM UTC
+* Version: 0.5
+* Updated: 2010/09/15 4:20 AM UTC
 
 h3. Table of Contents
 
@@ -42,6 +42,11 @@ h3(#installation-and-usage). Installation and usage
 # You can customize the plugin's settings in the plugin's panel: _Textpattern / Extensions / Comment antispam_.
 
 h3(#changelog). Changelog
+
+p. *Version 0.5*
+
+* Added option to check the time the user used to write the comment and block instant posters. "As discussed here":http://forum.textpattern.com/viewtopic.php?id=34535.
+* Removed unused HTML field ids and sizes from the backend pane.
 
 p. *Version 0.4*
 
