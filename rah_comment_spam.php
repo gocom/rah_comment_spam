@@ -16,23 +16,31 @@
  */
 
 	if(@txpinterface == 'admin') {
-		rah_comment_spam_install();
+		rah_comment_spam::install();
 		add_privs('plugin_prefs.rah_comment_spam', '1,2');
-		register_callback('rah_comment_spam_prefs', 'plugin_prefs.rah_comment_spam');
-		register_callback('rah_comment_spam_install', 'plugin_lifecycle.rah_comment_spam');
+		register_callback(array('rah_comment_spam', 'prefs'), 'plugin_prefs.rah_comment_spam');
+		register_callback(array('rah_comment_spam', 'install'), 'plugin_lifecycle.rah_comment_spam');
 	}
 	elseif(@txpinterface == 'public') {
-		register_callback('rah_comment_spam_register', 'comment.save');
-		register_callback('rah_comment_spam_register', 'comment.form');
+		register_callback(array('rah_comment_spam', 'register'), 'comment.save');
+		register_callback(array('rah_comment_spam', 'register'), 'comment.form');
 	}
 
 /**
- * Installer
- * @param string $event Admin-side event.
- * @param string $step Admin-side, plugin-lifecycle step.
+ * Anti-spam tools
  */
 
-	function rah_comment_spam_install($event='', $step='') {
+class rah_comment_spam {
+
+	private $form = array();
+
+	/**
+	 * Installer
+	 * @param string $event Admin-side event.
+	 * @param string $step Admin-side, plugin-lifecycle step.
+	 */
+
+	static public function install($event='', $step='') {
 		
 		global $prefs;
 
@@ -161,23 +169,19 @@
 			$position++;
 		}
 		
-		/*
-			Set version
-		*/
-		
 		set_pref('rah_comment_spam_version',$version,'rah_cspam',2,'',0);
 		$prefs['rah_comment_spam_version'] = $version;
 	}
 
-/**
- * Check for spam
- * @param string $event Callback event.
- */
+	/**
+	 * Hook to commoent form callback events
+	 * @param string $event Callback event.
+	 */
 
-	function rah_comment_spam_register($event='') {
+	static public function register($event='') {
 		global $prefs;
 
-		rah_comment_spam_install();
+		self::install();
 
 		/*
 			Add spam trap field to the comment form
@@ -235,14 +239,6 @@
 			}
 		}
 	}
-
-/**
- * Contains anti-spam tools
- */
-
-class rah_comment_spam {
-
-	private $form = array();
 
 	/**
 	 * Filter comment
@@ -442,6 +438,19 @@ class rah_comment_spam {
 		if(!(checkdnsrr($domain,'MX') || checkdnsrr($domain,'A')))
 			return true;
 	}
+
+	/**
+	 * Redirect to preferences panel
+	 */
+
+	static public function prefs() {
+		header('Location: ?event=prefs#prefs-rah_comment_spam_method');
+		echo 
+			'<p>'.n.
+			'	<a href="?event=prefs#prefs-rah_comment_spam_method">'.gTxt('continue').'</a>'.n.
+			'</p>';
+	}
+
 }
 
 /**
@@ -483,17 +492,5 @@ class rah_comment_spam {
 
 	function rah_comment_spam_textarea($name, $val) {
 		return text_area($name, 100, 300, $val, $name);
-	}
-
-/**
- * Redirect to preferences panel
- */
-
-	function rah_comment_spam_prefs() {
-		header('Location: ?event=prefs#prefs-rah_comment_spam_method');
-		echo 
-			'<p>'.n.
-			'	<a href="?event=prefs#prefs-rah_comment_spam_method">'.gTxt('continue').'</a>'.n.
-			'</p>';
 	}
 ?>
