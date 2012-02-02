@@ -1,7 +1,7 @@
 <?php	##################
 	#
 	#	rah_comment_spam-plugin for Textpattern
-	#	version 0.6
+	#	version 0.7
 	#	by Jukka Svahn
 	#	http://rahforum.biz
 	#
@@ -76,7 +76,7 @@
 				$textarray[$name] = $translation;
 		}
 
-		$version = '0.6';
+		$version = '0.7';
 
 		$current = isset($prefs['rah_comment_spam_version']) ? 
 			$prefs['rah_comment_spam_version'] : 'base';
@@ -198,6 +198,7 @@
 		*/
 		
 		set_pref('rah_comment_spam_version',$version,'rah_cspam',2,'',0);
+		$prefs['rah_comment_spam_version'] = $version;
 	}
 
 /**
