@@ -32,6 +32,8 @@
  */
 
 	function rah_comment_spam_install($event='', $step='') {
+		
+		global $prefs;
 
 		if($step == 'deleted') {
 			safe_delete(
@@ -39,45 +41,6 @@
 				"name like 'rah_comment_spam_%'"
 			);
 			return;
-		}
-
-		global $prefs, $textarray;
-
-		/*
-			Make sure language strings are set
-		*/
-
-		foreach(
-			array(
-				'method' => 'What to do comments detected as spam?',
-				'method_block' => 'Ignore, do not save',
-				'method_moderate' => 'Save to moderation queue',
-				'method_spam' => 'Save and flag as spam',
-				'message' => 'Message displayed to the user when the comment was blocked',
-				'spamwords' => 'List of spam words (comma-separated)',
-				'check' => 'Search spam words from following fields (comma-separated)',
-				'maxspamwords' => 'Maximum number of spam words until the comment is considered as spam',
-				'urlcount' => 'Number of allowed URLs',
-				'minwords' => 'Minimum number of words',
-				'maxwords' => 'Maximum number of words',
-				'minchars' => 'Minimum number of characters',
-				'maxchars' => 'Maximum number of characters',
-				'field' => 'Name of hidden spam trap field (empty to disable the trap)',
-				'commentuse' => 'Use quotas, limit users\' comment posting activity?',
-				'commentlimit' => 'Users\' comment quota limit',
-				'commentin' => 'Count users\' comments towards quota in',
-				'commentin_all' => 'In all articles',
-				'commentin_this' => 'In current article',
-				'commenttime' => 'Quota resets every number of seconds',
-				'emaildns' => 'Check email\'s DNS records?',
-				'use_type_detect' => 'Check the time user spent writing the comment?',
-				'type_interval' => 'Minimum time required to be spent writing a comment (in seconds)?'
-			) as $string => $translation
-		) {
-			$name = strpos($string, 'rah_') === 0 ? $string : 'rah_comment_spam_'.$string;
-
-			if(!isset($textarray[$name]))
-				$textarray[$name] = $translation;
 		}
 
 		$version = '0.7';

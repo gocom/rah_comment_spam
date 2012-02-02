@@ -1,0 +1,25 @@
+#@admin
+#Default language, en-us, en-gb
+rah_comment_spam_method => What to do comments detected as spam?
+rah_comment_spam_method_block => Ignore, do not save
+rah_comment_spam_method_moderate => Save to moderation queue
+rah_comment_spam_method_spam => Save and flag as spam
+rah_comment_spam_message => Message displayed to the user when the comment was blocked
+rah_comment_spam_spamwords => List of spam words (comma-separated)
+rah_comment_spam_check => Search spam words from following fields (comma-separated)
+rah_comment_spam_maxspamwords => Maximum number of spam words until the comment is considered as spam
+rah_comment_spam_urlcount => Number of allowed URLs
+rah_comment_spam_minwords => Minimum number of words
+rah_comment_spam_maxwords => Maximum number of words
+rah_comment_spam_minchars => Minimum number of characters
+rah_comment_spam_maxchars => Maximum number of characters
+rah_comment_spam_field => Name of hidden spam trap field (empty to disable the trap)
+rah_comment_spam_commentuse => Use quotas, limit users' comment posting activity?
+rah_comment_spam_commentlimit => Users' comment quota limit
+rah_comment_spam_commentin => Count users' comments towards quota in
+rah_comment_spam_commentin_all => In all articles
+rah_comment_spam_commentin_this => In current article
+rah_comment_spam_commenttime => Quota resets every number of seconds
+rah_comment_spam_emaildns => Check email's DNS records?
+rah_comment_spam_use_type_detect => Check the time user spent writing the comment?
+rah_comment_spam_type_interval => Minimum time required to be spent writing a comment (in seconds)?
