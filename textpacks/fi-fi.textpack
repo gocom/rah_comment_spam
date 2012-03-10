@@ -1,0 +1,25 @@
+#@admin
+#@language fi-fi
+rah_comment_spam_method => Mitä havaiduille roskaposteille tehdään?
+rah_comment_spam_method_block => Hylkää, älä tallenna
+rah_comment_spam_method_moderate => Tallenna hyväksyntäjonoon
+rah_comment_spam_method_spam => Tallenna ja merkkaa roskapostiksi
+rah_comment_spam_message => Käyttäjälle näytetty viesti kommentin merkkaantuessa roskapostiksi
+rah_comment_spam_spamwords => Lista roskaposti-termejä (pilkuin eroteltuna)
+rah_comment_spam_check => Etsi termejä seuraavista kentistä (pilkuin eroteltuna)
+rah_comment_spam_maxspamwords => Sallittujen termien määrä kunnes kommentti merkataan roskapostiksi
+rah_comment_spam_urlcount => Sallittujen linkkien määrä
+rah_comment_spam_minwords => Sanojen vähimmäismäärä
+rah_comment_spam_maxwords => Sanojen enimmäismäärä
+rah_comment_spam_minchars => Kirjainten vähimmäismäärä
+rah_comment_spam_maxchars => Kirjainten ensimmäismäärä
+rah_comment_spam_field => Piilotetun ansakentän nimi (pois käytöstä jos tyhjä)
+rah_comment_spam_commentuse => Käytä viestikiintiöitä ja rajoita kommentointiaktiivisuutta?
+rah_comment_spam_commentlimit => Käyttäjien omaama viestikiintiö
+rah_comment_spam_commentin => Laske kiintiöön viestit
+rah_comment_spam_commentin_all => Kaikista artikkeleista
+rah_comment_spam_commentin_this => Kyseisestä artikkelista
+rah_comment_spam_commenttime => Kiintiö nollataan sekunnin välein
+rah_comment_spam_emaildns => Taskasta sähköpostiosoitteen DNS-tiedot?
+rah_comment_spam_use_type_detect => Taskasta käyttäjän kommentin kirjoittamiseen käyttämä aika?
+rah_comment_spam_type_interval => Vaadittu kirjoittamiseen käytetty vähimmäisaika sekunneissa?
