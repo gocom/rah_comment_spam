@@ -32,6 +32,7 @@
 
 class rah_comment_spam {
 
+	static public $version = '0.7';
 	private $form = array();
 
 	/**
@@ -52,12 +53,10 @@ class rah_comment_spam {
 			return;
 		}
 
-		$version = '0.7';
-
 		$current = isset($prefs['rah_comment_spam_version']) ? 
 			$prefs['rah_comment_spam_version'] : 'base';
 
-		if($version == $current)
+		if(self::$version == $current)
 			return;
 
 		$ini = 
@@ -169,8 +168,8 @@ class rah_comment_spam {
 			$position++;
 		}
 		
-		set_pref('rah_comment_spam_version',$version,'rah_cspam',2,'',0);
-		$prefs['rah_comment_spam_version'] = $version;
+		set_pref('rah_comment_spam_version', self::$version, 'rah_cspam', 2, '', 0);
+		$prefs['rah_comment_spam_version'] = self::$version;
 	}
 
 	/**
