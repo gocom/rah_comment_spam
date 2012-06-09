@@ -26,10 +26,6 @@
 		register_callback(array('rah_comment_spam', 'register'), 'comment.form');
 	}
 
-/**
- * Anti-spam tools
- */
-
 class rah_comment_spam {
 
 	static public $version = '0.7';
@@ -96,15 +92,18 @@ class rah_comment_spam {
 
 			if(!empty($rs) && is_array($rs)) {
 				foreach($rs as $a) {
-					if(!isset($ini[$a['name']]))
+					
+					if(!isset($ini[$a['name']])) {
 						continue;
+					}
 					
 					if(in_array($a['name'], array(
 						'use_type_detect',
 						'emaildns',
 						'commentuse',
-					)))
+					))) {
 						$a['value'] = $a['value'] == 'no' ? 0 : 1;
+					}
 					
 					$ini[$a['name']] = $a['value'];
 				}
@@ -248,12 +247,16 @@ class rah_comment_spam {
 		global $prefs;
 
 		$this->form = getComment();
+		
+		$stack = array();
 
-		foreach(do_list($prefs['rah_comment_spam_check']) as $f) 
-			if(isset($this->form[$f]) && !isset($stack[$f]))
-				$stack[$f] = $this->form[$f];
+		foreach(do_list($prefs['rah_comment_spam_check']) as $f) {
+			if(isset($this->form[$f]) && !isset($stack[$f])) {
+				$stack[$f] = (string) $this->form[$f];
+			}
+		}
 
-		$stack = isset($stack) ? implode(' ', $stack) : '';
+		$stack = implode(' ', $stack);
 
 		return 
 			(
@@ -293,7 +296,7 @@ class rah_comment_spam {
 	 * @return bool
 	 */
 
-	private function search($needle,$string,$max=0,$count=0) {
+	private function search($needle, $string, $max=0, $count=0) {
 
 		if(!$needle || !$string)
 			return false;
@@ -316,12 +319,13 @@ class rah_comment_spam {
 			$needle = do_list($needle);
 		}
 
-		foreach($needle as $find)
-			if(!empty($find))
+		foreach($needle as $find) {
+			if(!empty($find)) {
 				$count += $mb ? mb_substr_count($string,$find,'UTF-8') : substr_count($string,$find);
+			}
+		}
 
-		if($count > $max)
-			return true;
+		return ($count > $max);
 	}
 
 	/**
@@ -338,11 +342,10 @@ class rah_comment_spam {
 
 		$chars = function_exists('mb_strlen') ? mb_strlen($string, 'UTF-8') : strlen($string);
 		
-		if(
+		return (
 			($prefs['rah_comment_spam_maxchars'] && $prefs['rah_comment_spam_maxchars'] < $chars) || 
 			($prefs['rah_comment_spam_minchars'] && $chars <= $prefs['rah_comment_spam_minchars'])
-		)
-			return true;
+		);
 	}
 
 	/**
@@ -359,11 +362,10 @@ class rah_comment_spam {
 		
 		$words = count(explode(chr(32),$string));
 		
-		if(
+		return (
 			($prefs['rah_comment_spam_maxwords'] && $prefs['rah_comment_spam_maxwords'] < $words) || 
 			($prefs['rah_comment_spam_minwords'] && $words <= $prefs['rah_comment_spam_minwords'])
-		)
-			return true;
+		);
 	}
 
 	/**
@@ -384,19 +386,18 @@ class rah_comment_spam {
 		
 		$preriod = (int) $prefs['rah_comment_spam_commenttime'];
 		
-		if(
+		return (
 			safe_count(
 				'txp_discuss',
 				"ip='$ip' and UNIX_TIMESTAMP(posted) > (UNIX_TIMESTAMP(now())-$preriod)".
 				($prefs['rah_comment_spam_commentin'] == 'this' ? " and parentid='".doSlash($thisarticle['thisid'])."'" : '')
 			) >= $prefs['rah_comment_spam_commentlimit']
-		)
-			return true;
+		);
 	}
 
 	/**
 	 * Check typing speed, make sure the user fidled with the comment form.
-	 * @return bool TRUE when comment is considered as spam.
+	 * @return bool
 	 */
 
 	private function typespeed() {
@@ -411,13 +412,12 @@ class rah_comment_spam {
 		@$barrier = strtotime('now')-$type_interval;
 		$md5 = md5($prefs['rah_comment_spam_nonce'].$time);
 
-		if($md5 != ps('rah_comment_spam_nonce') || $time >= $barrier)
-			return true;
+		return ($md5 != ps('rah_comment_spam_nonce') || $time >= $barrier);
 	}
 
 	/**
 	 * Check DNS records for the email address.
-	 * @return bool TRUE when comment is considered as spam.
+	 * @return bool
 	 */
 
 	private function emaildns() {
