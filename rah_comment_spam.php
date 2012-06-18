@@ -50,9 +50,9 @@ class rah_comment_spam {
 		}
 
 		$current = isset($prefs['rah_comment_spam_version']) ? 
-			$prefs['rah_comment_spam_version'] : 'base';
+			(string) $prefs['rah_comment_spam_version'] : 'base';
 
-		if(self::$version == $current)
+		if(self::$version === $current)
 			return;
 
 		$ini = 
