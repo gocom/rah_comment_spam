@@ -22,8 +22,8 @@
 		register_callback(array('rah_comment_spam', 'install'), 'plugin_lifecycle.rah_comment_spam');
 	}
 	elseif(@txpinterface == 'public') {
-		register_callback(array('rah_comment_spam', 'register'), 'comment.save');
-		register_callback(array('rah_comment_spam', 'register'), 'comment.form');
+		register_callback(array('rah_comment_spam', 'comment_save'), 'comment.save');
+		register_callback(array('rah_comment_spam', 'comment_form'), 'comment.form');
 	}
 
 class rah_comment_spam {
@@ -170,56 +170,46 @@ class rah_comment_spam {
 		set_pref('rah_comment_spam_version', self::$version, 'rah_cspam', 2, '', 0);
 		$prefs['rah_comment_spam_version'] = self::$version;
 	}
+	
+	/**
+	 * Adds fields to comment form
+	 */
+	
+	static public function comment_form() {
+		global $prefs;
+		
+		$out = array();
+		
+		if(!empty($prefs['rah_comment_spam_use_type_detect'])) {
+			$nonce = ps('rah_comment_spam_nonce');
+			$time = ps('rah_comment_spam_time');
+			
+			if(!$nonce && !$time) {
+				@$time = strtotime('now');
+				$nonce = md5($prefs['rah_comment_spam_nonce'].$time);
+			}
+						
+			$out[] = 
+				hInput('rah_comment_spam_nonce', $nonce).
+				hInput('rah_comment_spam_time', $time);
+		}
+		
+		if(!empty($prefs['rah_comment_spam_field'])) {
+			$out[] = 
+				'<div style="display:none;">'.
+					fInput('text', htmlspecialchars($prefs['rah_comment_spam_field']), ps($prefs['rah_comment_spam_field'])).
+				'</div>';
+		}
+		
+		return implode(n, $out);
+	}
 
 	/**
 	 * Hook to commoent form callback events
-	 * @param string $event Callback event.
 	 */
 
-	static public function register($event='') {
+	static public function comment_save() {
 		global $prefs;
-
-		self::install();
-
-		/*
-			Add spam trap field to the comment form
-		*/
-
-		if($event == 'comment.form') {
-
-			$out = array();
-
-			if($prefs['rah_comment_spam_use_type_detect']) {
-				
-				$nonce = ps('rah_comment_spam_nonce');
-				$time = ps('rah_comment_spam_time');
-				
-				if(!$nonce && !$time) {
-					@$time = strtotime('now');
-					$nonce = md5($prefs['rah_comment_spam_nonce'].$time);
-				}
-				
-				$out[] =
-					hInput('rah_comment_spam_nonce', $nonce).
-					hInput('rah_comment_spam_time', $time);
-			}
-
-			if($prefs['rah_comment_spam_field'])
-				$out[] = 
-					'<div style="display:none;">'.
-						fInput(
-							'text',
-							htmlspecialchars($prefs['rah_comment_spam_field']),
-							ps($prefs['rah_comment_spam_field'])
-						).
-					'</div>';
-
-			return n.implode('',$out).n;
-		}
-
-		/*
-			Check sent comments before saving
-		*/
 
 		$comment = new rah_comment_spam();
 
