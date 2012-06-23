@@ -229,52 +229,30 @@ class rah_comment_spam {
 	}
 
 	/**
-	 * Filter comment
-	 * @return bool TRUE if comment is detected as spam.
+	 * Filters comment
+	 * @return bool
 	 */
 
 	public function is_spam() {
-		global $prefs;
-
 		$this->form = getComment();
 		
-		$stack = array();
-
-		foreach(do_list($prefs['rah_comment_spam_check']) as $f) {
-			if(isset($this->form[$f]) && !isset($stack[$f])) {
-				$stack[$f] = (string) $this->form[$f];
+		foreach((array) get_class_methods($this) as $method) {
+			if(strpos($method, 'void_') === 0 && $this->$method === true) {
+				return true;
 			}
 		}
-
-		$stack = implode(' ', $stack);
-
-		return 
-			(
-				(
-					$prefs['rah_comment_spam_field'] && 
-					trim(ps($prefs['rah_comment_spam_field']))
-				) ||
-				$this->wordcount($this->form['message']) ||
-				$this->charcount($this->form['message']) ||
-				$this->search(
-					$prefs['rah_comment_spam_spamwords'],
-					$stack,
-					$prefs['rah_comment_spam_maxspamwords']
-				) ||
-				$this->search(
-					array(
-						'https://',
-						'http://',
-						'ftp://',
-						'ftps://'
-					),
-					$this->form['message'],
-					$prefs['rah_comment_spam_urlcount']
-				) ||
-				$this->commentquota() || 
-				$this->typespeed() || 
-				$this->emaildns()
-			);
+		
+		return false;
+	}
+	
+	/**
+	 * Validates hidden input
+	 * @return bool
+	 */
+	
+	protected function void_trap() {
+		global $prefs;
+		return $prefs['rah_comment_spam_field'] && trim(ps($prefs['rah_comment_spam_field']));
 	}
 
 	/**
@@ -286,7 +264,7 @@ class rah_comment_spam {
 	 * @return bool
 	 */
 
-	private function search($needle, $string, $max=0, $count=0) {
+	protected function search($needle, $string, $max=0, $count=0) {
 
 		if(!$needle || !$string)
 			return false;
@@ -319,13 +297,14 @@ class rah_comment_spam {
 	}
 
 	/**
-	 * Count characters, return TRUE if exceeds the limit.
-	 * @param string $string String to count
+	 * Count characters
 	 * @return bool
 	 */
 
-	private function charcount($string) {
+	protected function void_charcount() {
 		global $prefs;
+		
+		$string = $this->form['message'];
 
 		if(!$string || (!$prefs['rah_comment_spam_minchars'] && !$prefs['rah_comment_spam_maxchars']))
 			return false;
@@ -337,20 +316,60 @@ class rah_comment_spam {
 			($prefs['rah_comment_spam_minchars'] && $chars <= $prefs['rah_comment_spam_minchars'])
 		);
 	}
+	
+	/**
+	 * Checks for blacklisted words
+	 * @return bool
+	 */
+	
+	protected function void_spamwords() {	
+		global $prefs;
+		
+		$stack = array();
+		
+		foreach(do_list($prefs['rah_comment_spam_check']) as $f) {
+			if($f && isset($this->form[$f])) {
+				$stack[$f] = (string) $this->form[$f];
+			}
+		}
+		
+		return 
+			$this->search(
+				$prefs['rah_comment_spam_spamwords'],
+				implode(' ', $stack),
+				$prefs['rah_comment_spam_maxspamwords']
+			);
+	}
+	
+	/**
+	 * Chekcs link count
+	 * @return bool
+	 */
+	
+	protected function void_linkcount() {
+		global $prefs;
+		return 
+			$this->search(
+				array('https://', 'http://', 'ftp://', 'ftps://'),
+				$this->form['message'],
+				$prefs['rah_comment_spam_urlcount']
+			);
+	}
 
 	/**
 	 * Count words in a string
-	 * @param string $string String to count
-	 * @return bool TRUE if exceeds the limit.
+	 * @return bool
 	 */
 
-	private function wordcount($string) {
+	protected function void_wordcount() {
 		global $prefs;
+		
+		$string = $this->form['message'];
 		
 		if(!$string || (!$prefs['rah_comment_spam_maxwords'] && !$prefs['rah_comment_spam_minwords']))
 			return false;
 		
-		$words = count(explode(chr(32),$string));
+		$words = count(explode(chr(32), $string));
 		
 		return (
 			($prefs['rah_comment_spam_maxwords'] && $prefs['rah_comment_spam_maxwords'] < $words) || 
@@ -360,10 +379,10 @@ class rah_comment_spam {
 
 	/**
 	 * Limit user's comment posting.
-	 * @return bool TRUE when activity exceeds quota.
+	 * @return bool
 	 */
 
-	private function commentquota() {
+	protected function void_commentquota() {
 		global $thisarticle, $prefs;
 		
 		if(
@@ -390,7 +409,7 @@ class rah_comment_spam {
 	 * @return bool
 	 */
 
-	private function typespeed() {
+	protected function void_typespeed() {
 		global $prefs;
 
 		if(!$prefs['rah_comment_spam_use_type_detect'])
@@ -410,7 +429,7 @@ class rah_comment_spam {
 	 * @return bool
 	 */
 
-	private function emaildns() {
+	protected function void_emaildns() {
 		global $prefs;
 		
 		if(!$prefs['rah_comment_spam_emaildns'] || !trim($this->form['email']))
