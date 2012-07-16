@@ -373,7 +373,7 @@ class rah_comment_spam {
 		
 		return (
 			($prefs['rah_comment_spam_maxwords'] && $prefs['rah_comment_spam_maxwords'] < $words) || 
-			($prefs['rah_comment_spam_minwords'] && $words <= $prefs['rah_comment_spam_minwords'])
+			($prefs['rah_comment_spam_minwords'] && $words < $prefs['rah_comment_spam_minwords'])
 		);
 	}
 
