@@ -364,12 +364,12 @@ class rah_comment_spam {
 	protected function void_wordcount() {
 		global $prefs;
 		
-		$string = $this->form['message'];
+		$string = trim($this->form['message']);
 		
 		if(!$string || (!$prefs['rah_comment_spam_maxwords'] && !$prefs['rah_comment_spam_minwords']))
 			return false;
 		
-		$words = count(explode(chr(32), $string));
+		$words = count(preg_split('/[^\p{L}\p{N}\']+/u', $string));
 		
 		return (
 			($prefs['rah_comment_spam_maxwords'] && $prefs['rah_comment_spam_maxwords'] < $words) || 
