@@ -17,12 +17,8 @@ h2. Requirements
 
 p. Rah_comment_spam's minimum requirements:
 
-* PHP 5 or newer
-* Textpattern 4.2.0 or newer.
-
-p. Recommended:
-
 * Textpattern 4.4.1 or newer.
+* PHP 5.2 or newer
 
 h2. Installation
 
