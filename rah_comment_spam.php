@@ -469,8 +469,9 @@ class rah_comment_spam {
 
 	function rah_comment_spam_select_method($name, $val) {
 
-		foreach(array('block', 'moderate', 'spam') as $opt)
+		foreach(array('block', 'moderate', 'spam') as $opt) {
 			$out[$opt] = gTxt('rah_comment_spam_method_'.$opt);
+		}
 
 		return selectInput($name, $out, $val, '', '', $name);
 	}
@@ -484,8 +485,9 @@ class rah_comment_spam {
 
 	function rah_comment_spam_select_commentin($name, $val) {
 
-		foreach(array('all', 'this') as $opt)
+		foreach(array('all', 'this') as $opt) {
 			$out[$opt] = gTxt('rah_comment_spam_commentin_'.$opt);
+		}
 		
 		return selectInput($name, $out, $val, '', '', $name);
 	}
