@@ -15,16 +15,7 @@
  * http://www.gnu.org/licenses/gpl-2.0.html
  */
 
-	if(@txpinterface == 'admin') {
-		rah_comment_spam::install();
-		add_privs('plugin_prefs.rah_comment_spam', '1,2');
-		register_callback(array('rah_comment_spam', 'prefs'), 'plugin_prefs.rah_comment_spam');
-		register_callback(array('rah_comment_spam', 'install'), 'plugin_lifecycle.rah_comment_spam');
-	}
-	elseif(@txpinterface == 'public') {
-		register_callback(array('rah_comment_spam', 'comment_save'), 'comment.save');
-		register_callback(array('rah_comment_spam', 'comment_form'), 'comment.form');
-	}
+	new rah_comment_spam();
 
 class rah_comment_spam {
 
@@ -172,10 +163,22 @@ class rah_comment_spam {
 	}
 	
 	/**
+	 * Constructor
+	 */
+	
+	public function __construct() {
+		add_privs('plugin_prefs.'.__CLASS__, '1,2');
+		register_callback(array(__CLASS__, 'install'), 'plugin_lifecycle.'.__CLASS__);
+		register_callback(array($this, 'prefs'), 'plugin_prefs.'.__CLASS__);
+		register_callback(array($this, 'comment_save'), 'comment.save');
+		register_callback(array($this, 'comment_form'), 'comment.form');
+	}
+	
+	/**
 	 * Adds fields to comment form
 	 */
 	
-	static public function comment_form() {
+	public function comment_form() {
 		global $prefs;
 		
 		$out = array();
@@ -208,12 +211,10 @@ class rah_comment_spam {
 	 * Hook to commoent form callback events
 	 */
 
-	static public function comment_save() {
+	public function comment_save() {
 		global $prefs;
 
-		$comment = new rah_comment_spam();
-
-		if($comment->is_spam()) {
+		if($this->is_spam()) {
 			$evaluator =& get_comment_evaluator();
 			switch($prefs['rah_comment_spam_method']) {
 				case 'block' :
@@ -451,7 +452,7 @@ class rah_comment_spam {
 	 * Redirect to preferences panel
 	 */
 
-	static public function prefs() {
+	public function prefs() {
 		header('Location: ?event=prefs#prefs-rah_comment_spam_method');
 		echo 
 			'<p>'.n.
