@@ -156,6 +156,8 @@ class rah_comment_spam {
 
 	public function comment_save() {
 		global $prefs;
+		
+		$this->form = getComment();
 
 		if(!$this->is_spam()) {
 			return;
@@ -183,7 +185,6 @@ class rah_comment_spam {
 	 */
 
 	public function is_spam() {
-		$this->form = getComment();
 		
 		foreach((array) get_class_methods($this) as $method) {
 			if(strpos($method, 'void_') === 0 && $this->$method === true) {
