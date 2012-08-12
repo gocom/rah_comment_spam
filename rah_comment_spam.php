@@ -206,8 +206,8 @@ class rah_comment_spam {
 	}
 
 	/**
-	 * Finds needles from haystack. If $max is exceeded returns TRUE.
-	 * @param mixed $needle Needle to search for. Either comma-separated string or array.
+	 * Finds needles from haystack.
+	 * @param mixed $needle Needle to search for. Either a comma-separated string or an array.
 	 * @param string $string String to search.
 	 * @param int $count Starting value.
 	 * @return int
@@ -237,7 +237,7 @@ class rah_comment_spam {
 	}
 
 	/**
-	 * Count characters
+	 * Counts characters
 	 * @return bool
 	 */
 
