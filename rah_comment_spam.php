@@ -18,7 +18,12 @@
 class rah_comment_spam {
 
 	static public $version = '0.7';
-	private $form = array();
+	
+	/**
+	 * @var array Stores the form
+	 */
+	
+	public $form = array();
 
 	/**
 	 * Installer
