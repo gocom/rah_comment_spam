@@ -187,7 +187,7 @@ class rah_comment_spam {
 	public function is_spam() {
 		
 		foreach((array) get_class_methods($this) as $method) {
-			if(strpos($method, 'void_') === 0 && $this->$method === true) {
+			if(strpos($method, 'valid_') === 0 && $this->$method() === false) {
 				return true;
 			}
 		}
@@ -200,24 +200,24 @@ class rah_comment_spam {
 	 * @return bool
 	 */
 	
-	protected function void_trap() {
+	protected function valid_trap() {
 		global $prefs;
-		return $prefs['rah_comment_spam_field'] && trim(ps($prefs['rah_comment_spam_field']));
+		return !$prefs['rah_comment_spam_field'] || !trim(ps($prefs['rah_comment_spam_field']));
 	}
 
 	/**
 	 * Finds needles from haystack. If $max is exceeded returns TRUE.
 	 * @param mixed $needle Needle to search for. Either comma-separated string or array.
 	 * @param string $string String to search.
-	 * @param int $max Maximum occurrences.
 	 * @param int $count Starting value.
-	 * @return bool
+	 * @return int
 	 */
 
-	protected function search($needle, $string, $max=0, $count=0) {
+	protected function search($needle, $string, $count=0) {
 
-		if(!$needle || !$string)
-			return false;
+		if(!$needle || !$string) {
+			return $count;
+		}
 	
 		$mb = function_exists('mb_strtolower') && function_exists('mb_substr_count');
 		$string = $mb ? mb_strtolower(' '.$string.' ', 'UTF-8') : strtolower(' '.$string.' ');
@@ -232,8 +232,8 @@ class rah_comment_spam {
 				$count += $mb ? mb_substr_count($string, $find, 'UTF-8') : substr_count($string, $find);
 			}
 		}
-
-		return ($count > $max);
+		
+		return $count;
 	}
 
 	/**
@@ -241,20 +241,21 @@ class rah_comment_spam {
 	 * @return bool
 	 */
 
-	protected function void_charcount() {
+	protected function valid_charcount() {
 		global $prefs;
 		
 		$string = $this->form['message'];
 
-		if(!$string || (!$prefs['rah_comment_spam_minchars'] && !$prefs['rah_comment_spam_maxchars']))
-			return false;
+		if(!$string) {
+			return true;
+		}
 
 		$chars = function_exists('mb_strlen') ? mb_strlen($string, 'UTF-8') : strlen($string);
 		
-		return (
-			($prefs['rah_comment_spam_maxchars'] && $prefs['rah_comment_spam_maxchars'] < $chars) || 
-			($prefs['rah_comment_spam_minchars'] && $chars <= $prefs['rah_comment_spam_minchars'])
-		);
+		return
+			(!$prefs['rah_comment_spam_maxchars'] || $prefs['rah_comment_spam_maxchars'] >= $chars) && 
+			(!$prefs['rah_comment_spam_minchars'] || $prefs['rah_comment_spam_minchars'] <= $chars)
+		;
 	}
 	
 	/**
@@ -262,7 +263,7 @@ class rah_comment_spam {
 	 * @return bool
 	 */
 	
-	protected function void_spamwords() {	
+	protected function valid_spamwords() {	
 		global $prefs;
 		
 		$stack = array();
@@ -276,9 +277,8 @@ class rah_comment_spam {
 		return 
 			$this->search(
 				$prefs['rah_comment_spam_spamwords'],
-				implode(' ', $stack),
-				$prefs['rah_comment_spam_maxspamwords']
-			);
+				implode(' ', $stack)
+			) <= $prefs['rah_comment_spam_maxspamwords'];
 	}
 	
 	/**
@@ -286,14 +286,13 @@ class rah_comment_spam {
 	 * @return bool
 	 */
 	
-	protected function void_linkcount() {
+	protected function valid_linkcount() {
 		global $prefs;
 		return 
 			$this->search(
 				array('https://', 'http://', 'ftp://', 'ftps://'),
-				$this->form['message'],
-				$prefs['rah_comment_spam_urlcount']
-			);
+				$this->form['message']
+			) <= $prefs['rah_comment_spam_urlcount'];
 	}
 
 	/**
@@ -301,20 +300,21 @@ class rah_comment_spam {
 	 * @return bool
 	 */
 
-	protected function void_wordcount() {
+	protected function valid_wordcount() {
 		global $prefs;
 		
 		$string = trim($this->form['message']);
 		
-		if(!$string || (!$prefs['rah_comment_spam_maxwords'] && !$prefs['rah_comment_spam_minwords']))
-			return false;
+		if(!$string) {
+			return true;
+		}
 		
 		$words = count(preg_split('/[^\p{L}\p{N}\']+/u', $string));
 		
-		return (
-			($prefs['rah_comment_spam_maxwords'] && $prefs['rah_comment_spam_maxwords'] < $words) || 
-			($prefs['rah_comment_spam_minwords'] && $words < $prefs['rah_comment_spam_minwords'])
-		);
+		return
+			(!$prefs['rah_comment_spam_maxwords'] || $prefs['rah_comment_spam_maxwords'] >= $words) && 
+			(!$prefs['rah_comment_spam_minwords'] || $prefs['rah_comment_spam_minwords'] <= $words)
+		;
 	}
 
 	/**
@@ -322,7 +322,7 @@ class rah_comment_spam {
 	 * @return bool
 	 */
 
-	protected function void_commentquota() {
+	protected function valid_commentquota() {
 		global $thisarticle, $prefs;
 		
 		if(
@@ -330,18 +330,18 @@ class rah_comment_spam {
 			!$prefs['rah_comment_spam_commentlimit'] ||
 			($prefs['rah_comment_spam_commentin'] == 'this' && !isset($thisarticle['thisid'])) ||
 			(($ip = doSlash(remote_addr())) && !$ip)
-		)
-			return false;
+		) {
+			return true;
+		}
 		
 		$preriod = (int) $prefs['rah_comment_spam_commenttime'];
 		
-		return (
+		return
 			safe_count(
 				'txp_discuss',
 				"ip='$ip' and UNIX_TIMESTAMP(posted) > (UNIX_TIMESTAMP(now())-$preriod)".
 				($prefs['rah_comment_spam_commentin'] == 'this' ? " and parentid='".doSlash($thisarticle['thisid'])."'" : '')
-			) >= $prefs['rah_comment_spam_commentlimit']
-		);
+			) < $prefs['rah_comment_spam_commentlimit'];
 	}
 
 	/**
@@ -349,11 +349,12 @@ class rah_comment_spam {
 	 * @return bool
 	 */
 
-	protected function void_typespeed() {
+	protected function valid_typespeed() {
 		global $prefs;
 
-		if(!$prefs['rah_comment_spam_use_type_detect'])
-			return false;
+		if(!$prefs['rah_comment_spam_use_type_detect']) {
+			return true;
+		}
 		
 		$type_interval = (int) $prefs['rah_comment_spam_type_interval'];
 		$time = (int) ps('rah_comment_spam_time');
@@ -361,7 +362,7 @@ class rah_comment_spam {
 		@$barrier = strtotime('now')-$type_interval;
 		$md5 = md5(get_pref('blog_uid').$time);
 
-		return ($md5 != ps('rah_comment_spam_nonce') || $time >= $barrier);
+		return $md5 === ps('rah_comment_spam_nonce') && $time <= $barrier;
 	}
 
 	/**
@@ -369,22 +370,15 @@ class rah_comment_spam {
 	 * @return bool
 	 */
 
-	protected function void_emaildns() {
+	protected function valid_emaildns() {
 		global $prefs;
 		
-		if(!$prefs['rah_comment_spam_emaildns'] || !trim($this->form['email']))
-			return false;
-		
-		$domain = trim(end(explode('@',$this->form['email'])));
-
-		if(!$domain)
+		if(!$prefs['rah_comment_spam_emaildns'] || !trim($this->form['email']) || !function_exists('checkdnsrr')) {
 			return true;
+		}
 		
-		if(!function_exists('checkdnsrr'))
-			return false;
-		
-		if(!(checkdnsrr($domain,'MX') || checkdnsrr($domain,'A')))
-			return true;
+		$domain = trim(end(explode('@', $this->form['email'])));
+		return !$domain || (!checkdnsrr($domain, 'MX') && !checkdnsrr($domain, 'A'));
 	}
 
 	/**
