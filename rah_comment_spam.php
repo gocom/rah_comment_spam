@@ -173,7 +173,8 @@ class rah_comment_spam {
 	}
 	
 	/**
-	 * Adds fields to comment form
+	 * Adds fields to the comment form
+	 * @return string HTML
 	 */
 	
 	public function comment_form() {
@@ -189,7 +190,7 @@ class rah_comment_spam {
 				@$time = strtotime('now');
 				$nonce = md5($prefs['rah_comment_spam_nonce'].$time);
 			}
-						
+			
 			$out[] = 
 				hInput('rah_comment_spam_nonce', $nonce).
 				hInput('rah_comment_spam_time', $time);
@@ -197,7 +198,7 @@ class rah_comment_spam {
 		
 		if(!empty($prefs['rah_comment_spam_field'])) {
 			$out[] = 
-				'<div style="display:none;">'.
+				'<div style="display:none">'.
 					fInput('text', htmlspecialchars($prefs['rah_comment_spam_field']), ps($prefs['rah_comment_spam_field'])).
 				'</div>';
 		}
