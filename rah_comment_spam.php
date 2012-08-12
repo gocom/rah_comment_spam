@@ -212,18 +212,23 @@ class rah_comment_spam {
 	public function comment_save() {
 		global $prefs;
 
-		if($this->is_spam()) {
-			$evaluator =& get_comment_evaluator();
-			switch($prefs['rah_comment_spam_method']) {
-				case 'block' :
-					$evaluator->add_estimate(RELOAD,1, gTxt($prefs['rah_comment_spam_message']));
+		if(!$this->is_spam()) {
+			return;
+		}
+		
+		$evaluator =& get_comment_evaluator();
+		
+		switch($prefs['rah_comment_spam_method']) {
+			case 'block':
+				$evaluator->add_estimate(RELOAD, 1, gTxt($prefs['rah_comment_spam_message']));
 				break;
-				case 'moderate' :
-					$evaluator->add_estimate(MODERATE,0.75);
+			
+			case 'moderate':
+				$evaluator->add_estimate(MODERATE, 0.75);
 				break;
-				default :
-					$evaluator->add_estimate(SPAM,0.75);
-			}
+			
+			default:
+				$evaluator->add_estimate(SPAM, 0.75);
 		}
 	}
 
@@ -279,16 +284,16 @@ class rah_comment_spam {
 			array if string was provided
 		*/
 
-		$string = $mb ? mb_strtolower(' '.$string.' ','UTF-8') : strtolower(' '.$string.' ');
+		$string = $mb ? mb_strtolower(' '.$string.' ', 'UTF-8') : strtolower(' '.$string.' ');
 
 		if(!is_array($needle)) {
-			$needle = $mb ? mb_strtolower($needle,'UTF-8') : strtolower($needle);
+			$needle = $mb ? mb_strtolower($needle, 'UTF-8') : strtolower($needle);
 			$needle = do_list($needle);
 		}
 
 		foreach($needle as $find) {
 			if(!empty($find)) {
-				$count += $mb ? mb_substr_count($string,$find,'UTF-8') : substr_count($string,$find);
+				$count += $mb ? mb_substr_count($string, $find, 'UTF-8') : substr_count($string, $find);
 			}
 		}
 
