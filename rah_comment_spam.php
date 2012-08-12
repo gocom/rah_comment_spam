@@ -219,17 +219,7 @@ class rah_comment_spam {
 		if(!$needle || !$string)
 			return false;
 	
-		/*
-			Get the status of multibyte functions
-		*/
-
 		$mb = function_exists('mb_strtolower') && function_exists('mb_substr_count');
-
-		/*
-			Convert cases, turn needle to
-			array if string was provided
-		*/
-
 		$string = $mb ? mb_strtolower(' '.$string.' ', 'UTF-8') : strtolower(' '.$string.' ');
 
 		if(!is_array($needle)) {
