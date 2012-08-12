@@ -59,8 +59,7 @@ class rah_comment_spam {
 			'commenttime' => array('text_input', 300),
 			'emaildns' => array('yesnoradio', 0),
 			'use_type_detect' => array('yesnoradio', 0),
-			'type_interval' => array('text_input', 5),
-			'nonce' => md5(uniqid(rand(),true))
+			'type_interval' => array('text_input', 5)
 		);
 
 		@$rs = safe_rows('name, value', 'rah_comment_spam', '1=1');
@@ -94,12 +93,6 @@ class rah_comment_spam {
 			$n = __CLASS__.'_'.$name;
 			
 			if(!isset($prefs[$n])) {
-				
-				if($name == 'nonce') {
-					set_pref('rah_comment_spam_nonce', $val, 'rah_cspam', 2, '', 0);
-					continue;
-				}
-				
 				set_pref($n, $val[1], 'comments', PREF_BASIC, $val[0], $position);
 				$prefs[$n] = $val[1];
 			}
@@ -139,7 +132,7 @@ class rah_comment_spam {
 			
 			if(!$nonce && !$time) {
 				@$time = strtotime('now');
-				$nonce = md5($prefs['rah_comment_spam_nonce'].$time);
+				$nonce = md5(get_pref('blog_uid').$time);
 			}
 			
 			$out[] = 
@@ -375,7 +368,7 @@ class rah_comment_spam {
 		$time = (int) ps('rah_comment_spam_time');
 
 		@$barrier = strtotime('now')-$type_interval;
-		$md5 = md5($prefs['rah_comment_spam_nonce'].$time);
+		$md5 = md5(get_pref('blog_uid').$time);
 
 		return ($md5 != ps('rah_comment_spam_nonce') || $time >= $barrier);
 	}
