@@ -109,6 +109,11 @@ p. Sets the required interaction time in seconds. Default is @5@. Higher values 
 
 h2. Changelog
 
+h3. Version 0.8 - upcoming
+
+* Added: Finnish translation.
+* Fixed: Word and character limits are zero index. Setting a value to 1 means that one or more is applicable. Previously the limits had offset of one. Setting the value to 1 required 2.
+
 h3. Version 0.7 - 2011/11/03
 
 * Fixed: Update cached version number after running the installer.
