@@ -38,126 +38,77 @@ class rah_comment_spam {
 			return;
 		}
 
-		$current = isset($prefs['rah_comment_spam_version']) ? 
-			(string) $prefs['rah_comment_spam_version'] : 'base';
-
-		if(self::$version === $current)
+		if((string) get_pref(__CLASS__.'_version') === self::$version)
 			return;
 
-		$ini = 
-			array(
-				'method' => 'moderate',
-				'message' => 'Your comment was marked as spam.',
-				'spamwords' => '',
-				'maxspamwords' => 3,
-				'check' => 'name, email, web, message',
-				'urlcount' => 6,
-				'minwords' => 1,
-				'maxwords' => 10000,
-				'minchars' => 1,
-				'maxchars' => 65535,
-				'field' => 'phone',
-				'commentuse' => 1,
-				'commentlimit' => 10,
-				'commentin' => 'this',
-				'commenttime' => 300,
-				'emaildns' => 0,
-				'use_type_detect' => 0,
-				'type_interval' => 5,
-				'nonce' => md5(uniqid(rand(),true))
-			);
+		$opt = array(
+			'method' => array('rah_comment_spam_select_method', 'moderate'),
+			'message' => array('text_input', 'Your comment was marked as spam.'),
+			'spamwords' => array('rah_comment_spam_textarea', ''),
+			'maxspamwords' => array('text_input', 3),
+			'check' => array('text_input', 'name, email, web, message'),
+			'urlcount' => array('text_input', 6),
+			'minwords' => array('text_input', 1),
+			'maxwords' => array('text_input', 10000),
+			'minchars' => array('text_input', 1),
+			'maxchars' => array('text_input', 65535),
+			'field' => array('text_input', 'phone'),
+			'commentuse' => array('yesnoradio', 1),
+			'commentlimit' => array('text_input', 10),
+			'commentin' => array('rah_comment_spam_select_commentin', 'this'),
+			'commenttime' => array('text_input', 300),
+			'emaildns' => array('yesnoradio', 0),
+			'use_type_detect' => array('yesnoradio', 0),
+			'type_interval' => array('text_input', 5),
+			'nonce' => md5(uniqid(rand(),true))
+		);
 
-		/*
-			Migrate preferences format from <= 0.5 to >= 0.6
-		*/
+		@$rs = safe_rows('name, value', 'rah_comment_spam', '1=1');
 
-		if($current == 'base') {
-			@$rs = 
-				safe_rows(
-					'name, value',
-					'rah_comment_spam',
-					'1=1'
-				);
-
-			if(!empty($rs) && is_array($rs)) {
-				foreach($rs as $a) {
+		if($rs) {
+			
+			foreach($rs as $a) {
 					
-					if(!isset($ini[$a['name']])) {
-						continue;
-					}
-					
-					if(in_array($a['name'], array(
-						'use_type_detect',
-						'emaildns',
-						'commentuse',
-					))) {
-						$a['value'] = $a['value'] == 'no' ? 0 : 1;
-					}
-					
-					$ini[$a['name']] = $a['value'];
+				if(!isset($opt[$a['name']])) {
+					continue;
 				}
-
-				@safe_query(
-					'DROP TABLE IF EXISTS '.safe_pfx('rah_comment_spam')
-				);
+				
+				if(in_array($a['name'], array(
+					'use_type_detect',
+					'emaildns',
+					'commentuse',
+				))) {
+					$a['value'] = $a['value'] == 'no' ? 0 : 1;
+				}
+					
+				$opt[$a['name']][1] = $a['value'];
 			}
+			
+			@safe_query('DROP TABLE IF EXISTS '.safe_pfx('rah_comment_spam'));
 		}
 
 		$position = 250;
-
-		/*
-			Add preference strings
-		*/
 		
-		foreach($ini as $name => $val) {
+		foreach($opt as $name => $val) {
 
-			$n = 'rah_comment_spam_' . $name;
+			$n = __CLASS__.'_'.$name;
 			
 			if(!isset($prefs[$n])) {
 				
 				if($name == 'nonce') {
-					set_pref('rah_comment_spam_nonce',$val,'rah_cspam',2,'',0);
+					set_pref('rah_comment_spam_nonce', $val, 'rah_cspam', 2, '', 0);
 					continue;
 				}
 				
-				switch($name) {
-					case 'commentuse':
-					case 'emaildns':
-					case 'use_type_detect':
-						$html = 'yesnoradio';
-						break;
-					case 'commentin':
-						$html = 'rah_comment_spam_select_commentin';
-						break;
-					case 'method':
-						$html = 'rah_comment_spam_select_method';
-						break;
-					case 'spamwords':
-						$html = 'rah_comment_spam_textarea';
-						break;
-					default:
-						$html = 'text_input';
-				}
-
-				safe_insert(
-					'txp_prefs',
-					"prefs_id=1,
-					name='".doSlash($n)."',
-					val='".doSlash($val)."',
-					type=0,
-					event='comments',
-					html='$html',
-					position=".$position
-				);
-				
-				$prefs[$n] = $val;
+				set_pref($n, $val[1], 'comments', PREF_BASIC, $val[0], $position);
+				$prefs[$n] = $val[1];
 			}
 			
 			$position++;
 		}
 		
-		set_pref('rah_comment_spam_version', self::$version, 'rah_cspam', 2, '', 0);
-		$prefs['rah_comment_spam_version'] = self::$version;
+		set_pref(__CLASS__.'_version', self::$version, 'rah_cspam', 2, '', 0);
+		$prefs[__CLASS__.'_version'] = self::$version;
 	}
 	
 	/**
