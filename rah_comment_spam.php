@@ -13,11 +13,17 @@
  * http://www.gnu.org/licenses/gpl-2.0.html
  */
 
-	new rah_comment_spam();
+	rah_comment_spam::get();
 
 class rah_comment_spam {
 
 	static public $version = '0.7';
+	
+	/**
+	 * @var obj Stores an instance of the class
+	 */
+	
+	static public $instance = null;
 	
 	/**
 	 * @var array Stores the form
@@ -107,6 +113,19 @@ class rah_comment_spam {
 		
 		set_pref(__CLASS__.'_version', self::$version, 'rah_cspam', 2, '', 0);
 		$prefs[__CLASS__.'_version'] = self::$version;
+	}
+	
+	/**
+	 * Gets an instance
+	 * @return obj
+	 */
+	
+	static public function get() {
+		if(self::$instance === null) {
+			self::$instance = new rah_comment_spam();
+		}
+		
+		return self::$instance;
 	}
 	
 	/**
