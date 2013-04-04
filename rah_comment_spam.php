@@ -161,7 +161,7 @@ class rah_comment_spam
 		{
 			$out[] = 
 				'<div style="display:none">'.
-					fInput('text', htmlspecialchars(get_pref('rah_comment_spam_field')), ps(get_pref('rah_comment_spam_field'))).
+					fInput('text', txpspecialchars(get_pref('rah_comment_spam_field')), ps(get_pref('rah_comment_spam_field'))).
 				'</div>';
 		}
 
