@@ -38,7 +38,7 @@ class rah_comment_spam
 	 * @param string $step  Admin-side, plugin-lifecycle step
 	 */
 
-	public function install($event='', $step='')
+	public function install($event = '', $step = '')
 	{
 		if ($step == 'deleted')
 		{
@@ -355,7 +355,7 @@ class rah_comment_spam
 	protected function valid_commentquota()
 	{
 		global $thisarticle;
-		
+
 		if (
 			!get_pref('rah_comment_spam_commentuse') || 
 			!get_pref('rah_comment_spam_commentlimit') ||
@@ -441,7 +441,6 @@ new rah_comment_spam();
 
 	function rah_comment_spam_select_method($name, $val)
 	{
-
 		foreach (array('block', 'moderate', 'spam') as $opt)
 		{
 			$out[$opt] = gTxt('rah_comment_spam_method_'.$opt);
