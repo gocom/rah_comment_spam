@@ -13,8 +13,6 @@
  * http://www.gnu.org/licenses/gpl-2.0.html
  */
 
-	new rah_comment_spam();
-
 class rah_comment_spam
 {
 	/**
@@ -452,6 +450,8 @@ class rah_comment_spam
 	}
 
 }
+
+new rah_comment_spam();
 
 /**
  * Spam protection method option.
