@@ -501,4 +501,3 @@ class rah_comment_spam
 	{
 		return text_area($name, 100, 300, $val, $name);
 	}
-?>
