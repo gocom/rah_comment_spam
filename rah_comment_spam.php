@@ -17,18 +17,27 @@
 
 class rah_comment_spam
 {
+	/**
+	 * Version number.
+	 *
+	 * @var string
+	 */
+
 	static public $version = '0.7';
 
 	/**
-	 * @var array Stores the form
+	 * Stores the form.
+	 *
+	 * @var array
 	 */
-	
+
 	public $form = array();
 
 	/**
-	 * Installer
-	 * @param string $event Admin-side event.
-	 * @param string $step Admin-side, plugin-lifecycle step.
+	 * Installer.
+	 *
+	 * @param string $event Admin-side event
+	 * @param string $step  Admin-side, plugin-lifecycle step
 	 */
 
 	static public function install($event='', $step='')
@@ -116,9 +125,9 @@ class rah_comment_spam
 	}
 
 	/**
-	 * Constructor
+	 * Constructor.
 	 */
-	
+
 	public function __construct()
 	{
 		add_privs('plugin_prefs.'.__CLASS__, '1,2');
@@ -129,7 +138,8 @@ class rah_comment_spam
 	}
 
 	/**
-	 * Adds fields to the comment form
+	 * Adds fields to the comment form.
+	 *
 	 * @return string HTML
 	 */
 
@@ -167,7 +177,7 @@ class rah_comment_spam
 	}
 
 	/**
-	 * Hook to commoent form callback events
+	 * Hooks to comment form callback events.
 	 */
 
 	public function comment_save()
@@ -197,7 +207,8 @@ class rah_comment_spam
 	}
 
 	/**
-	 * Filters comment
+	 * Filters a comment.
+	 *
 	 * @return bool
 	 */
 
@@ -215,10 +226,11 @@ class rah_comment_spam
 	}
 	
 	/**
-	 * Validates hidden input
+	 * Validates the hidden spam-trap input.
+	 *
 	 * @return bool
 	 */
-	
+
 	protected function valid_trap()
 	{
 		global $prefs;
@@ -227,9 +239,10 @@ class rah_comment_spam
 
 	/**
 	 * Finds needles from haystack.
-	 * @param mixed $needle Needle to search for. Either a comma-separated string or an array.
-	 * @param string $string String to search.
-	 * @param int $count Starting value.
+	 *
+	 * @param  string|array $needle Either a comma-separated string of values or an array
+	 * @param  string       $string String to search
+	 * @param  int          $count  Starting value
 	 * @return int
 	 */
 
@@ -261,7 +274,8 @@ class rah_comment_spam
 	}
 
 	/**
-	 * Counts characters
+	 * Counts characters.
+	 *
 	 * @return bool
 	 */
 
@@ -285,7 +299,8 @@ class rah_comment_spam
 	}
 
 	/**
-	 * Checks for blacklisted words
+	 * Checks for blacklisted words.
+	 *
 	 * @return bool
 	 */
 
@@ -309,12 +324,13 @@ class rah_comment_spam
 				implode(' ', $stack)
 			) <= $prefs['rah_comment_spam_maxspamwords'];
 	}
-	
+
 	/**
-	 * Chekcs link count
+	 * Chekcs link count.
+	 *
 	 * @return bool
 	 */
-	
+
 	protected function valid_linkcount()
 	{
 		global $prefs;
@@ -326,7 +342,8 @@ class rah_comment_spam
 	}
 
 	/**
-	 * Count words in a string
+	 * Checks words in the message.
+	 *
 	 * @return bool
 	 */
 
@@ -350,7 +367,8 @@ class rah_comment_spam
 	}
 
 	/**
-	 * Limit user's comment posting.
+	 * Limits users' comment posting activity.
+	 *
 	 * @return bool
 	 */
 
@@ -379,7 +397,8 @@ class rah_comment_spam
 	}
 
 	/**
-	 * Check typing speed, make sure the user fidled with the comment form.
+	 * Check typing speed, making sure the user interacted with the comment form.
+	 *
 	 * @return bool
 	 */
 
@@ -402,7 +421,8 @@ class rah_comment_spam
 	}
 
 	/**
-	 * Check DNS records for the email address.
+	 * Checks DNS records for the email address.
+	 *
 	 * @return bool
 	 */
 
@@ -420,7 +440,7 @@ class rah_comment_spam
 	}
 
 	/**
-	 * Redirect to preferences panel
+	 * Redirects to preferences panel.
 	 */
 
 	public function prefs() {
@@ -434,10 +454,11 @@ class rah_comment_spam
 }
 
 /**
- * Spam protection method option
- * @param string $name Field name.
- * @param string $val Current value.
- * @return string HTML select field.
+ * Spam protection method option.
+ *
+ * @param  string $name Field name
+ * @param  string $val  Current value
+ * @return string HTML select field
  */
 
 	function rah_comment_spam_select_method($name, $val)
@@ -452,10 +473,11 @@ class rah_comment_spam
 	}
 
 /**
- * Comment count range option
- * @param string $name Field name.
- * @param string $val Current value.
- * @return string HTML select field.
+ * Comment count range option.
+ *
+ * @param  string $name Field name
+ * @param  string $val  Current value
+ * @return string HTML select field
  */
 
 	function rah_comment_spam_select_commentin($name, $val)
@@ -469,10 +491,11 @@ class rah_comment_spam
 	}
 
 /**
- * Textarea for preferences panel
- * @param string $name Field name.
- * @param string $val Current value.
- * @return string HTML textarea.
+ * Textarea for preferences panel.
+ *
+ * @param  string $name Field name
+ * @param  string $val  Current value
+ * @return string HTML textarea
  */
 
 	function rah_comment_spam_textarea($name, $val)
