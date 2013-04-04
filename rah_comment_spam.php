@@ -112,14 +112,12 @@ class rah_comment_spam
 			if (!isset($prefs[$n]))
 			{
 				set_pref($n, $val[1], 'comments', PREF_BASIC, $val[0], $position);
-				$prefs[$n] = $val[1];
 			}
 
 			$position++;
 		}
 
 		set_pref('rah_comment_spam_version', self::$version, 'rah_cspam', 2, '', 0);
-		$prefs[__CLASS__.'_version'] = self::$version;
 	}
 
 	/**
