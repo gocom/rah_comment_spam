@@ -1,0 +1,11 @@
+{
+	"name"        : "rah_comment_spam",
+	"description" : "Anti-spam tools to prevent comment spam",
+	"version"     : "0.7",
+	"type"        : 1,
+	"author"      : "Jukka Svahn",
+	"author_uri"  : "http://rahforum.biz",
+	"order"       : 5,
+	"flags"       : 3,
+	"help"        : {"file" : ["./README.textile"]}
+}
