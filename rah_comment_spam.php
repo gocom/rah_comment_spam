@@ -51,7 +51,7 @@ class rah_comment_spam
 			return;
 		}
 
-		if ((string) get_pref(__CLASS__.'_version') === self::$version)
+		if ((string) get_pref('rah_comment_spam_version') === self::$version)
 		{
 			return;
 		}
@@ -107,7 +107,7 @@ class rah_comment_spam
 
 		foreach ($opt as $name => $val)
 		{
-			$n = __CLASS__.'_'.$name;
+			$n = 'rah_comment_spam_'.$name;
 
 			if (!isset($prefs[$n]))
 			{
@@ -118,7 +118,7 @@ class rah_comment_spam
 			$position++;
 		}
 
-		set_pref(__CLASS__.'_version', self::$version, 'rah_cspam', 2, '', 0);
+		set_pref('rah_comment_spam_version', self::$version, 'rah_cspam', 2, '', 0);
 		$prefs[__CLASS__.'_version'] = self::$version;
 	}
 
@@ -128,9 +128,9 @@ class rah_comment_spam
 
 	public function __construct()
 	{
-		add_privs('plugin_prefs.'.__CLASS__, '1,2');
-		register_callback(array(__CLASS__, 'install'), 'plugin_lifecycle.'.__CLASS__);
-		register_callback(array($this, 'prefs'), 'plugin_prefs.'.__CLASS__);
+		add_privs('plugin_prefs.rah_comment_spam', '1,2');
+		register_callback(array(__CLASS__, 'install'), 'plugin_lifecycle.rah_comment_spam');
+		register_callback(array($this, 'prefs'), 'plugin_prefs.rah_comment_spam');
 		register_callback(array($this, 'comment_save'), 'comment.save');
 		register_callback(array($this, 'comment_form'), 'comment.form');
 	}
