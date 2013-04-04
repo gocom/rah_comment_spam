@@ -1,5 +1,7 @@
 h1. rah_comment_spam
 
+p. "Project page":http://rahforum.biz/plugins/rah_comment_spam | "Twitter":http://twitter.com/gocom | "GitHub":https://github.com/gocom/rah_comment_spam | "Support forum":http://forum.textpattern.com/viewtopic.php?id=28274 | "Donate":http://rahforum.biz/donate/rah_comment_spam
+
 p. Rah_comment_spam provides customizable anti-spam tools for "Textpattern's":http://www.textpattern.com comment system. Set minimum and maximum message length, filter spam words, validate email addresses, limit posting activity and set hidden spam traps. All from simple admin-side graphical user interface, no head first dive to code.
 
 h2. List of features
