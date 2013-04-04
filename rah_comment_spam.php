@@ -38,7 +38,7 @@ class rah_comment_spam
 	 * @param string $step  Admin-side, plugin-lifecycle step
 	 */
 
-	static public function install($event='', $step='')
+	public function install($event='', $step='')
 	{
 		global $prefs;
 
@@ -129,7 +129,7 @@ class rah_comment_spam
 	public function __construct()
 	{
 		add_privs('plugin_prefs.rah_comment_spam', '1,2');
-		register_callback(array(__CLASS__, 'install'), 'plugin_lifecycle.rah_comment_spam');
+		register_callback(array($this, 'install'), 'plugin_lifecycle.rah_comment_spam');
 		register_callback(array($this, 'prefs'), 'plugin_prefs.rah_comment_spam');
 		register_callback(array($this, 'comment_save'), 'comment.save');
 		register_callback(array($this, 'comment_form'), 'comment.form');
