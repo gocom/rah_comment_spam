@@ -17,8 +17,7 @@ h2. Requirements
 
 p. Rah_comment_spam's minimum requirements:
 
-* Textpattern 4.4.1 or newer.
-* PHP 5.2 or newer
+* Textpattern 4.5.0 or newer.
 
 h2. Installation
 
@@ -113,6 +112,7 @@ h3. Version 0.8 - upcoming
 
 * Added: Finnish translation.
 * Fixed: Word and character limits are zero index. Setting a value to 1 means that one or more is applicable. Previously the limits had offset of one. Setting the value to 1 required 2.
+* Now requires Textpattern version 4.5.0 or newer.
 
 h3. Version 0.7 - 2011/11/03
 
