@@ -1,6 +1,6 @@
 h1. rah_comment_spam
 
-"Issues":https://github.com/gocom/rah_comment_spam/issues | "Support forum":http://forum.textpattern.com/viewtopic.php?id=28274 | "Twitter":http://twitter.com/gocom | "Donate":http://rahforum.biz/donate/rah_comment_spam
+"Packagist":https://packagist.org/packages/rah/rah_comment_spam | "Issues":https://github.com/gocom/rah_comment_spam/issues | "Support forum":http://forum.textpattern.com/viewtopic.php?id=28274 | "Twitter":http://twitter.com/gocom | "Donate":http://rahforum.biz/donate/rah_comment_spam
 
 Rah_comment_spam provides customizable anti-spam tools for "Textpattern's":http://www.textpattern.com comment system. Set minimum and maximum message length, filter spam words, validate email addresses, limit posting activity and set hidden spam traps. All from simple admin-side graphical user interface, no head first dive to code.
 
@@ -15,18 +15,19 @@ h2. List of features
 * Set quotas, limit users' comment posting activity.
 * Integrates with Textpattern's native preferences panel; no diving into code needed at all.
 
+h2. Install
+
+Using "Composer":http://getcomposer.org:
+
+bc. $ composer require rah/rah_comment_spam:*
+
+Or "download":https://github.com/gocom/rah_comment_spam/releases a plugin package.
+
 h2. Requirements
 
 Rah_comment_spam's minimum requirements:
 
 * Textpattern 4.5.0 or newer.
-
-h2. Installation
-
-# Navigate to your Textpattern installation's Plugins panel (_Textpattern / Admin / Plugins_).
-# Copy and paste rah_comment_spam's plugin package code to the plugin installer textarea and run the automated setup.
-# After the setup is completed, activate the plugin and you're set.
-# You can customize the plugin's settings in Preferences panel's comment section (_Textpattern / Admin / Preferences_).
 
 h2. Configuration
 
@@ -110,7 +111,7 @@ Sets the required interaction time in seconds. Default is @5@. Higher values are
 
 h2. Changelog
 
-h3. Version 0.8 - upcoming
+h3. Version 0.8.0 - upcoming
 
 * Added: Finnish translation.
 * Fixed: Word and character limits are zero index. Setting a value to 1 means that one or more is applicable. Previously the limits had offset of one. Setting the value to 1 required 2.
