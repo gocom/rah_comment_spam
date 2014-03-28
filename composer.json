@@ -1,0 +1,24 @@
+{
+    "name": "rah/rah_comment_spam",
+    "description": "Anti-spam tools for Textpattern CMS",
+    "keywords": ["textpattern", "plugin"],
+    "homepage": "https://github.com/gocom/rah_comment_spam",
+    "license": "GPL-2.0",
+    "type": "textpattern-plugin",
+    "authors": [
+        {
+            "name": "Jukka Svahn",
+            "homepage": "http://rahforum.biz",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/gocom/rah_comment_spam/issues",
+        "source": "https://github.com/gocom/rah_comment_spam"
+    },
+    "require": {
+        "php": ">=5.2.0",
+        "textpattern/lock": ">=4.5.0",
+        "textpattern/installer": "*"
+    }
+}
