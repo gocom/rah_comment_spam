@@ -30,14 +30,6 @@
 class Rah_Comment_Spam
 {
     /**
-     * Version number.
-     *
-     * @var string
-     */
-
-    static public $version = '0.7';
-
-    /**
      * Stores the form.
      *
      * @var array
@@ -59,10 +51,6 @@ class Rah_Comment_Spam
                 'txp_prefs',
                 "name like 'rah\_comment\_spam\_%'"
             );
-            return;
-        }
-
-        if ((string) get_pref('rah_comment_spam_version') === self::$version) {
             return;
         }
 
@@ -120,8 +108,6 @@ class Rah_Comment_Spam
 
             $position++;
         }
-
-        set_pref('rah_comment_spam_version', self::$version, 'rah_cspam', 2, '', 0);
     }
 
     /**
