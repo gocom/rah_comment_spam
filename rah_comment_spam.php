@@ -38,22 +38,25 @@ class Rah_Comment_Spam
     public $form = array();
 
     /**
-     * Installer.
-     *
-     * @param string $event Admin-side event
-     * @param string $step  Admin-side, plugin-lifecycle step
+     * Constructor.
      */
 
-    public function install($event = '', $step = '')
+    public function __construct()
     {
-        if ($step == 'deleted') {
-            safe_delete(
-                'txp_prefs',
-                "name like 'rah\_comment\_spam\_%'"
-            );
-            return;
-        }
+        add_privs('plugin_prefs.rah_comment_spam', '1,2');
+        register_callback(array($this, 'install'), 'plugin_lifecycle.rah_comment_spam', 'installed');
+        register_callback(array($this, 'uninstall'), 'plugin_lifecycle.rah_backup', 'deleted');
+        register_callback(array($this, 'prefs'), 'plugin_prefs.rah_comment_spam');
+        register_callback(array($this, 'comment_save'), 'comment.save');
+        register_callback(array($this, 'comment_form'), 'comment.form');
+    }
 
+    /**
+     * Installer.
+     */
+
+    public function install()
+    {
         $opt = array(
             'method'          => array('rah_comment_spam_select_method', 'moderate'),
             'message'         => array('text_input', 'Your comment was marked as spam.'),
@@ -111,16 +114,15 @@ class Rah_Comment_Spam
     }
 
     /**
-     * Constructor.
+     * Uninstaller.
      */
 
-    public function __construct()
+    public function uninstall()
     {
-        add_privs('plugin_prefs.rah_comment_spam', '1,2');
-        register_callback(array($this, 'install'), 'plugin_lifecycle.rah_comment_spam');
-        register_callback(array($this, 'prefs'), 'plugin_prefs.rah_comment_spam');
-        register_callback(array($this, 'comment_save'), 'comment.save');
-        register_callback(array($this, 'comment_form'), 'comment.form');
+        safe_delete(
+            'txp_prefs',
+            "name like 'rah\_comment\_spam\_%'"
+        );
     }
 
     /**
