@@ -47,8 +47,8 @@ class Rah_Comment_Spam
         register_callback(array($this, 'install'), 'plugin_lifecycle.rah_comment_spam', 'installed');
         register_callback(array($this, 'uninstall'), 'plugin_lifecycle.rah_backup', 'deleted');
         register_callback(array($this, 'prefs'), 'plugin_prefs.rah_comment_spam');
-        register_callback(array($this, 'comment_save'), 'comment.save');
-        register_callback(array($this, 'comment_form'), 'comment.form');
+        register_callback(array($this, 'commentSave'), 'comment.save');
+        register_callback(array($this, 'commentForm'), 'comment.form');
     }
 
     /**
@@ -131,7 +131,7 @@ class Rah_Comment_Spam
      * @return string HTML
      */
 
-    public function comment_form()
+    public function commentForm()
     {
         $out = array();
 
@@ -144,15 +144,19 @@ class Rah_Comment_Spam
                 $nonce = md5(get_pref('blog_uid').$time);
             }
 
-            $out[] = 
+            $out[] =
                 hInput('rah_comment_spam_nonce', $nonce).
                 hInput('rah_comment_spam_time', $time);
         }
 
         if (get_pref('rah_comment_spam_field')) {
-            $out[] = 
+            $out[] =
                 '<div style="display:none">'.
-                    fInput('text', txpspecialchars(get_pref('rah_comment_spam_field')), ps(get_pref('rah_comment_spam_field'))).
+                    fInput(
+                        'text',
+                        txpspecialchars(get_pref('rah_comment_spam_field')),
+                        ps(get_pref('rah_comment_spam_field'))
+                    ).
                 '</div>';
         }
 
@@ -163,7 +167,7 @@ class Rah_Comment_Spam
      * Hooks to comment form callback events.
      */
 
-    public function comment_save()
+    public function commentSave()
     {
         $this->form = getComment();
 
@@ -275,7 +279,7 @@ class Rah_Comment_Spam
      */
 
     protected function isValidSpamWords()
-    {    
+    {
         $stack = array();
 
         foreach (do_list(get_pref('rah_comment_spam_check')) as $f) {
@@ -336,7 +340,7 @@ class Rah_Comment_Spam
         global $thisarticle;
 
         if (
-            !get_pref('rah_comment_spam_commentuse') || 
+            !get_pref('rah_comment_spam_commentuse') ||
             !get_pref('rah_comment_spam_commentlimit') ||
             (get_pref('rah_comment_spam_commentin') == 'this' && !isset($thisarticle['thisid'])) ||
             (($ip = doSlash(remote_addr())) && !$ip)
