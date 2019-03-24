@@ -42,7 +42,7 @@ final class Rah_Comment_Spam
     {
         add_privs('plugin_prefs.rah_comment_spam', '1,2');
         register_callback([$this, 'install'], 'plugin_lifecycle.rah_comment_spam', 'installed');
-        register_callback([$this, 'uninstall'], 'plugin_lifecycle.rah_backup', 'deleted');
+        register_callback([$this, 'uninstall'], 'plugin_lifecycle.rah_comment_spam', 'deleted');
         register_callback([$this, 'prefs'], 'plugin_prefs.rah_comment_spam');
         register_callback([$this, 'commentSave'], 'comment.save');
         register_callback([$this, 'commentForm'], 'comment.form');
