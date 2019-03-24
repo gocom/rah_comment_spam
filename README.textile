@@ -96,7 +96,7 @@ Sets the timespan used in the activity limiting. Comments older than this are no
 
 h3. Check email's DNS records?
 
-If set _Yes_, email address' DNS records are checked. If the domain is found to be non-existent, the comment is considered as spam. The feature requires "checkdnsrr()":http://php.net/manual/en/function.checkdnsrr.php function and the server must be allowed to make outgoing connections.
+If set _Yes_, email address' DNS records are checked. If the domain is found to be non-existent, the comment is considered as spam. The feature requires "checkdnsrr()":https://secure.php.net/manual/en/function.checkdnsrr.php function and the server must be allowed to make outgoing connections.
 
 h3. Check the time user spent writing the comment?
 
@@ -104,7 +104,7 @@ Makes sure that the user spent set amount of time writing the comment. Instant p
 
 h3. Minimum time required to be spent writing a comment?
 
-Sets the required interaction time in seconds. Default is @5@. Higher values are not recommended usability-wise. If you set the value higher than 5 seconds, consider adding JavaScript based counter to the comment form that informs the users how much they have to wait. For counters I recommend checking out "jQuery's plugin repository":http://plugins.jquery.com/plugin-tags/countdown.
+Sets the required interaction time in seconds. Default is @5@. Higher values are not recommended usability-wise. If you set the value higher than 5 seconds, consider adding JavaScript based counter to the comment form that informs the users how much they have to wait.
 
 h2. Changelog
 
