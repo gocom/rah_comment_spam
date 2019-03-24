@@ -10,7 +10,7 @@ Using "Composer":https://getcomposer.org:
 
 bc. $ composer require rah/rah_comment_spam
 
-h2. List of features
+h2. Features
 
 * Set comment message length limitations: minimum and maximum, words and characters.
 * Limit link posting.
@@ -22,8 +22,6 @@ h2. List of features
 * Integrates with Textpattern's native preferences panel; no diving into code needed at all.
 
 h2. Requirements
-
-Rah_comment_spam's minimum requirements:
 
 * Textpattern 4.5.0 or newer.
 * PHP 5.6.0 or newer.
