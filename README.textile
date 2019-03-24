@@ -1,8 +1,14 @@
 h1. rah_comment_spam
 
-"Download":https://github.com/gocom/rah_comment_spam/releases | "Packagist":https://packagist.org/packages/rah/rah_comment_spam | "Issues":https://github.com/gocom/rah_comment_spam/issues | "Support forum":http://forum.textpattern.com/viewtopic.php?id=28274 | "Twitter":http://twitter.com/gocom | "Donate":http://rahforum.biz/donate/rah_comment_spam
+"Packagist":https://packagist.org/packages/rah/rah_comment_spam | "Issues":https://github.com/gocom/rah_comment_spam/issues | "Donate":http://rahforum.biz/donate/rah_comment_spam
 
-Rah_comment_spam provides customizable anti-spam tools for "Textpattern's":http://www.textpattern.com comment system. Set minimum and maximum message length, filter spam words, validate email addresses, limit posting activity and set hidden spam traps. All from simple admin-side graphical user interface, no head first dive to code.
+Rah_comment_spam provides customizable anti-spam tools for "Textpattern CMS'":https://textpattern.com comment system. Set minimum and maximum message length, filter spam words, validate email addresses, limit posting activity and set hidden spam traps. All from simple admin-side graphical user interface, no head first dive to code.
+
+h2. Install
+
+Using "Composer":https://getcomposer.org:
+
+bc. $ composer require rah/rah_comment_spam
 
 h2. List of features
 
@@ -15,19 +21,12 @@ h2. List of features
 * Set quotas, limit users' comment posting activity.
 * Integrates with Textpattern's native preferences panel; no diving into code needed at all.
 
-h2. Install
-
-Using "Composer":http://getcomposer.org:
-
-bc. $ composer require rah/rah_comment_spam:*
-
-Or "download":https://github.com/gocom/rah_comment_spam/releases a plugin package.
-
 h2. Requirements
 
 Rah_comment_spam's minimum requirements:
 
 * Textpattern 4.5.0 or newer.
+* PHP 5.6.0 or newer.
 
 h2. Configuration
 
