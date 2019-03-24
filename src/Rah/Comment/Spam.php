@@ -324,8 +324,7 @@ final class Rah_Comment_Spam
     {
         global $thisarticle;
 
-        if (
-            !get_pref('rah_comment_spam_commentuse') ||
+        if (!get_pref('rah_comment_spam_commentuse') ||
             !get_pref('rah_comment_spam_commentlimit') ||
             (get_pref('rah_comment_spam_commentin') == 'this' && !isset($thisarticle['thisid'])) ||
             (($ip = doSlash(remote_addr())) && !$ip)
@@ -338,7 +337,9 @@ final class Rah_Comment_Spam
         return safe_count(
             'txp_discuss',
             "ip='$ip' and UNIX_TIMESTAMP(posted) > (UNIX_TIMESTAMP(now())-$preriod)".
-            (get_pref('rah_comment_spam_commentin') == 'this' ? " and parentid='".doSlash($thisarticle['thisid'])."'" : '')
+            (get_pref('rah_comment_spam_commentin') == 'this' ?
+                " and parentid='".doSlash($thisarticle['thisid'])."'" : ''
+            )
         ) < get_pref('rah_comment_spam_commentlimit');
     }
 
