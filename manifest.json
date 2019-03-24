@@ -9,7 +9,8 @@
     "flags": 3,
     "help": {"file" : ["./README.textile"]},
     "code": {"file" : [
-        "./src/Rah/Comment/PrefFields.php",
-        "./src/Rah/Comment/Spam.php"
+        "./src/Functions.php",
+        "./src/Rah/Comment/Spam.php",
+        "./src/Index.php"
     ]}
 }

@@ -4,7 +4,7 @@
  * rah_comment_spam - Anti-spam plugin for Textpattern CMS
  * https://github.com/gocom/rah_comment_spam
  *
- * Copyright (C) 2015 Jukka Svahn
+ * Copyright (C) 2019 Jukka Svahn
  *
  * This file is part of rah_comment_spam.
  *
@@ -38,7 +38,7 @@
 
 function rah_comment_spam_select_method($name, $val)
 {
-    foreach (array('block', 'moderate', 'spam') as $opt) {
+    foreach (['block', 'moderate', 'spam'] as $opt) {
         $out[$opt] = gTxt('rah_comment_spam_method_'.$opt);
     }
 
@@ -55,7 +55,7 @@ function rah_comment_spam_select_method($name, $val)
 
 function rah_comment_spam_select_commentin($name, $val)
 {
-    foreach (array('all', 'this') as $opt) {
+    foreach (['all', 'this'] as $opt) {
         $out[$opt] = gTxt('rah_comment_spam_commentin_'.$opt);
     }
 
