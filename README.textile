@@ -108,7 +108,7 @@ Sets the required interaction time in seconds. Default is @5@. Higher values are
 
 h2. Changelog
 
-h3. Version 0.9.0 - upcoming
+h3. Version 0.9.0 - 2019/03/24
 
 * Fix: Invoke uninstaller on uninstall.
 
