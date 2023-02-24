@@ -1,5 +1,5 @@
 #@admin
-rah_comment_spam_method => What to do comments detected as spam?
+rah_comment_spam_method => What to do to comments that are detected as spam?
 rah_comment_spam_method_block => Ignore, do not save
 rah_comment_spam_method_moderate => Save to moderation queue
 rah_comment_spam_method_spam => Save and flag as spam

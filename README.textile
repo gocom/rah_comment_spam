@@ -1,6 +1,6 @@
 h1. rah_comment_spam
 
-"Packagist":https://packagist.org/packages/rah/rah_comment_spam | "Issues":https://github.com/gocom/rah_comment_spam/issues | "Donate":http://rahforum.biz/donate/rah_comment_spam
+"Download":https://github.com/gocom/rah_comment_spam/releases | "Packagist":https://packagist.org/packages/rah/rah_comment_spam | "Issues":https://github.com/gocom/rah_sitemap/issues
 
 Rah_comment_spam provides customizable anti-spam tools for "Textpattern CMS'":https://textpattern.com comment system. Set minimum and maximum message length, filter spam words, validate email addresses, limit posting activity and set hidden spam traps. All from simple admin-side graphical user interface, no head first dive to code.
 
@@ -20,11 +20,6 @@ h2. Features
 * Change the spam protection method.
 * Set quotas, limit users' comment posting activity.
 * Integrates with Textpattern's native preferences panel; no diving into code needed at all.
-
-h2. Requirements
-
-* Textpattern 4.5.0 or newer.
-* PHP 5.6.0 or newer.
 
 h2. Configuration
 
@@ -107,6 +102,11 @@ h3. Minimum time required to be spent writing a comment?
 Sets the required interaction time in seconds. Default is @5@. Higher values are not recommended usability-wise. If you set the value higher than 5 seconds, consider adding JavaScript based counter to the comment form that informs the users how much they have to wait.
 
 h2. Changelog
+
+h3. Version 0.10.0 - upcoming
+
+* Now requires Textpattern CMS 4.8.0
+* PHP >= 8.1 compatibility.
 
 h3. Version 0.9.0 - 2019/03/24
 

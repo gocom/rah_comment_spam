@@ -24,7 +24,7 @@
 /**
  * Collection of preferences fields.
  *
- * These functions renders inputs on the
+ * These functions render inputs on the
  * preferences panel.
  */
 

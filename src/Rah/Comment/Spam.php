@@ -29,11 +29,28 @@
 final class Rah_Comment_Spam
 {
     /**
-     * Stores the form.
-     *
-     * @var array
+     * Options.
      */
-    public $form = [];
+    private const OPTIONS = [
+        'rah_comment_spam_method' => ['rah_comment_spam_select_method', 'moderate'],
+        'rah_comment_spam_message' => ['text_input', 'Your comment was marked as spam.'],
+        'rah_comment_spam_spamwords' => ['rah_comment_spam_textarea', ''],
+        'rah_comment_spam_maxspamwords' => ['text_input', 3],
+        'rah_comment_spam_check' => ['text_input', 'name, email, web, message'],
+        'rah_comment_spam_urlcount' => ['text_input', 6],
+        'rah_comment_spam_minwords' => ['text_input', 1],
+        'rah_comment_spam_maxwords' => ['text_input', 10000],
+        'rah_comment_spam_minchars' => ['text_input', 1],
+        'rah_comment_spam_maxchars' => ['text_input', 65535],
+        'rah_comment_spam_field' => ['text_input', 'phone'],
+        'rah_comment_spam_commentuse' => ['yesnoradio', 1],
+        'rah_comment_spam_commentlimit' => ['text_input', 10],
+        'rah_comment_spam_commentin' => ['rah_comment_spam_select_commentin', 'this'],
+        'rah_comment_spam_commenttime' => ['text_input', 300],
+        'rah_comment_spam_emaildns' => ['yesnoradio', 0],
+        'rah_comment_spam_use_type_detect' => ['yesnoradio', 0],
+        'rah_comment_spam_type_interval' => ['text_input', 5],
+    ];
 
     /**
      * Constructor.
@@ -51,73 +68,23 @@ final class Rah_Comment_Spam
     /**
      * Installer.
      */
-    public function install()
+    public function install(): void
     {
-        $opt = [
-            'method' => ['rah_comment_spam_select_method', 'moderate'],
-            'message' => ['text_input', 'Your comment was marked as spam.'],
-            'spamwords' => ['rah_comment_spam_textarea', ''],
-            'maxspamwords' => ['text_input', 3],
-            'check' => ['text_input', 'name, email, web, message'],
-            'urlcount' => ['text_input', 6],
-            'minwords' => ['text_input', 1],
-            'maxwords' => ['text_input', 10000],
-            'minchars' => ['text_input', 1],
-            'maxchars' => ['text_input', 65535],
-            'field' => ['text_input', 'phone'],
-            'commentuse' => ['yesnoradio', 1],
-            'commentlimit' => ['text_input', 10],
-            'commentin' => ['rah_comment_spam_select_commentin', 'this'],
-            'commenttime' => ['text_input', 300],
-            'emaildns' => ['yesnoradio', 0],
-            'use_type_detect' => ['yesnoradio', 0],
-            'type_interval' => ['text_input', 5],
-        ];
-
-        @$rs = safe_rows('name, value', 'rah_comment_spam', '1 = 1');
-
-        if ($rs) {
-            foreach ($rs as $a) {
-                if (!isset($opt[$a['name']])) {
-                    continue;
-                }
-
-                if (in_array($a['name'], [
-                    'use_type_detect',
-                    'emaildns',
-                    'commentuse',
-                ])) {
-                    $a['value'] = $a['value'] == 'no' ? 0 : 1;
-                }
-
-                $opt[$a['name']][1] = $a['value'];
-            }
-
-            @safe_query('DROP TABLE IF EXISTS '.safe_pfx('rah_comment_spam'));
-        }
-
         $position = 250;
 
-        foreach ($opt as $name => $val) {
-            $n = 'rah_comment_spam_'.$name;
-
-            if (get_pref($n, false) === false) {
-                set_pref($n, $val[1], 'comments', PREF_BASIC, $val[0], $position);
-            }
-
-            $position++;
+        foreach (self::OPTIONS as $name => $value) {
+            create_pref($name, $value[1], 'comments', PREF_PLUGIN, $value[0], $position++);
         }
     }
 
     /**
      * Uninstaller.
      */
-    public function uninstall()
+    public function uninstall(): void
     {
-        safe_delete(
-            'txp_prefs',
-            "name like 'rah\_comment\_spam\_%'"
-        );
+        foreach (array_keys(self::OPTIONS) as $name) {
+            remove_pref($name);
+        }
     }
 
     /**
@@ -125,7 +92,7 @@ final class Rah_Comment_Spam
      *
      * @return string HTML
      */
-    public function commentForm()
+    public function commentForm(): string
     {
         $out = [];
 
@@ -134,8 +101,8 @@ final class Rah_Comment_Spam
             $time = ps('rah_comment_spam_time');
 
             if (!$nonce && !$time) {
-                @$time = strtotime('now');
-                $nonce = md5(get_pref('blog_uid').$time);
+                $time = strtotime('now');
+                $nonce = md5(get_pref('blog_uid') . $time);
             }
 
             $out[] =
@@ -160,228 +127,57 @@ final class Rah_Comment_Spam
     /**
      * Hooks to comment form callback events.
      */
-    public function commentSave()
+    public function commentSave(): void
     {
-        $this->form = getComment();
+        if (!$this->isValidComment()) {
+            $evaluator =& get_comment_evaluator();
 
-        if (!$this->isSpam()) {
-            return;
-        }
-
-        $evaluator =& get_comment_evaluator();
-
-        switch (get_pref('rah_comment_spam_method')) {
-            case 'block':
-                $evaluator->add_estimate(RELOAD, 1, gTxt(get_pref('rah_comment_spam_message')));
-                break;
-            case 'moderate':
-                $evaluator->add_estimate(MODERATE, 0.75);
-                break;
-            default:
-                $evaluator->add_estimate(SPAM, 0.75);
+            switch (get_pref('rah_comment_spam_method')) {
+                case 'block':
+                    $evaluator->add_estimate(RELOAD, 1, gTxt(get_pref('rah_comment_spam_message')));
+                    break;
+                case 'moderate':
+                    $evaluator->add_estimate(MODERATE, 0.75);
+                    break;
+                default:
+                    $evaluator->add_estimate(SPAM, 0.75);
+            }
         }
     }
 
     /**
-     * Whether the comment is spam.
-     *
-     * This method validates the $this->form contents.
+     * Whether the comment is valid.
      *
      * @return bool
      */
-    public function isSpam()
+    public function isValidComment(): bool
     {
-        foreach ((array) get_class_methods($this) as $method) {
-            if (strpos($method, 'isValid') === 0 && $this->$method() === false) {
-                return true;
+        $comment = getComment();
+
+        $form = new Rah_Comment_Spam_Form(
+            (string) ($comment['name'] ?? ''),
+            (string) ($comment['email'] ?? ''),
+            (string) ($comment['web'] ?? ''),
+            (string) ($comment['message'] ?? '')
+        );
+
+        $validators = new Rah_Comment_Spam_ValidatorPool();
+
+        foreach ($validators->getValidators() as $validator) {
+            if ($validator->validate($form) === false) {
+                return false;
             }
         }
 
-        return false;
-    }
-
-    /**
-     * Validates the hidden spam-trap input.
-     *
-     * @return bool
-     */
-    protected function isValidTrap()
-    {
-        return !get_pref('rah_comment_spam_field') || !trim(ps(get_pref('rah_comment_spam_field')));
-    }
-
-    /**
-     * Finds needles from haystack.
-     *
-     * @param  string|array $needle Either a comma-separated string of values or an array
-     * @param  string       $string String to search
-     * @param  int          $count  Starting value
-     * @return int
-     */
-    protected function search($needle, $string, $count = 0)
-    {
-        if (!$needle || !$string) {
-            return $count;
-        }
-
-        $mb = function_exists('mb_strtolower') && function_exists('mb_substr_count');
-        $string = $mb ? mb_strtolower(' '.$string.' ', 'UTF-8') : strtolower(' '.$string.' ');
-
-        if (!is_array($needle)) {
-            $needle = $mb ? mb_strtolower($needle, 'UTF-8') : strtolower($needle);
-            $needle = do_list($needle);
-        }
-
-        foreach ($needle as $find) {
-            if (!empty($find)) {
-                $count += $mb ? mb_substr_count($string, $find, 'UTF-8') : substr_count($string, $find);
-            }
-        }
-
-        return $count;
-    }
-
-    /**
-     * Counts characters.
-     *
-     * @return bool
-     */
-    protected function isValidCharCount()
-    {
-        $string = $this->form['message'];
-
-        if (!$string) {
-            return true;
-        }
-
-        $chars = function_exists('mb_strlen') ? mb_strlen($string, 'UTF-8') : strlen($string);
-        $max = (int) get_pref('rah_comment_spam_maxchars');
-        $min = (int) get_pref('rah_comment_spam_minchars');
-
-        return (!$max || $max >= $chars) && $min <= $chars;
-    }
-
-    /**
-     * Checks for blacklisted words.
-     *
-     * @return bool
-     */
-    protected function isValidSpamWords()
-    {
-        $stack = [];
-
-        foreach (do_list(get_pref('rah_comment_spam_check')) as $f) {
-            if ($f && isset($this->form[$f])) {
-                $stack[$f] = (string) $this->form[$f];
-            }
-        }
-
-        return $this->search(
-            get_pref('rah_comment_spam_spamwords'),
-            implode(' ', $stack)
-        ) <= get_pref('rah_comment_spam_maxspamwords');
-    }
-
-    /**
-     * Chekcs link count.
-     *
-     * @return bool
-     */
-    protected function isValidLinkCount()
-    {
-        return $this->search(
-            ['https://', 'http://', 'ftp://', 'ftps://'],
-            $this->form['message']
-        ) <= get_pref('rah_comment_spam_urlcount');
-    }
-
-    /**
-     * Checks words in the message.
-     *
-     * @return bool
-     */
-    protected function isValidWordCount()
-    {
-        $string = trim($this->form['message']);
-
-        if (!$string) {
-            return true;
-        }
-
-        $words = count(preg_split('/[^\p{L}\p{N}\']+/u', $string));
-        $max = (int) get_pref('rah_comment_spam_maxwords');
-        $min = (int) get_pref('rah_comment_spam_minwords');
-
-        return (!$max || $max >= $words) && $min <= $words;
-    }
-
-    /**
-     * Limits users' comment posting activity.
-     *
-     * @return bool
-     */
-    protected function isValidCommentQuota()
-    {
-        global $thisarticle;
-
-        if (!get_pref('rah_comment_spam_commentuse') ||
-            !get_pref('rah_comment_spam_commentlimit') ||
-            (get_pref('rah_comment_spam_commentin') == 'this' && !isset($thisarticle['thisid'])) ||
-            (($ip = doSlash(remote_addr())) && !$ip)
-        ) {
-            return true;
-        }
-
-        $preriod = (int) get_pref('rah_comment_spam_commenttime');
-
-        return safe_count(
-            'txp_discuss',
-            "ip='$ip' and UNIX_TIMESTAMP(posted) > (UNIX_TIMESTAMP(now())-$preriod)".
-            (get_pref('rah_comment_spam_commentin') == 'this' ?
-                " and parentid='".doSlash($thisarticle['thisid'])."'" : ''
-            )
-        ) < get_pref('rah_comment_spam_commentlimit');
-    }
-
-    /**
-     * Check typing speed, making sure the user interacted with the comment form.
-     *
-     * @return bool
-     */
-    protected function isValidTypingSpeed()
-    {
-        if (!get_pref('rah_comment_spam_use_type_detect')) {
-            return true;
-        }
-
-        $type_interval = (int) get_pref('rah_comment_spam_type_interval');
-        $time = (int) ps('rah_comment_spam_time');
-
-        @$barrier = strtotime('now')-$type_interval;
-        $md5 = md5(get_pref('blog_uid').$time);
-
-        return $md5 === ps('rah_comment_spam_nonce') && $time <= $barrier;
-    }
-
-    /**
-     * Checks DNS records for the email address.
-     *
-     * @return bool
-     */
-    protected function isValidEmailDns()
-    {
-        if (!get_pref('rah_comment_spam_emaildns') || !trim($this->form['email']) || !function_exists('checkdnsrr')) {
-            return true;
-        }
-
-        $domain = trim(end(explode('@', $this->form['email'])));
-        return !$domain || (!checkdnsrr($domain, 'MX') && !checkdnsrr($domain, 'A'));
+        return true;
     }
 
     /**
      * Redirects to preferences panel.
+     *
+     * @return void
      */
-    public function prefs()
+    public function prefs(): void
     {
         header('Location: ?event=prefs#prefs-rah_comment_spam_method');
         echo '<p><a href="?event=prefs#prefs-rah_comment_spam_method">'.gTxt('continue').'</a></p>';
