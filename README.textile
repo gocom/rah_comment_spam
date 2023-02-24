@@ -105,8 +105,9 @@ h2. Changelog
 
 h3. Version 0.10.0 - upcoming
 
-* Now requires Textpattern CMS 4.8.0
+* Now requires Textpattern CMS >= 4.8.8
 * PHP >= 8.1 compatibility.
+* Now requires PHP >= 7.4.
 
 h3. Version 0.9.0 - 2019/03/24
 
