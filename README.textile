@@ -75,7 +75,7 @@ If set, hidden spam trap field is added to the comment form. The field will be h
 
 h3. Use quotas, limit users' comment posting activity?
 
-If set to _Yes_, users comment posting activity is limited. Comments going over the quota are considered as spam. Users are identified by IP addresses.
+If set to _Yes_, users comment posting activity is limited. Comments going over the quota are considered as spam. Users are identified by their email addresses.
 
 h3. Users' comment quota limit
 
@@ -103,10 +103,13 @@ Sets the required interaction time in seconds. Default is @5@. Higher values are
 
 h2. Changelog
 
-h3. Version 0.10.0 - upcoming
+h3. Version 0.10.0 - 2023/02/25
 
-* Now requires Textpattern CMS >= 4.8.8
+* Fixed: Commenters' comment quota check no longer tries to read IP addresses from Textpattern's comment records. Textpattern 4.8 no longer stores commenters' IP addresses, which was causing an error when quota validation was performed. Now we use commenter's email address to check the how many comments the user has written.
+* Fixed: Installation errors. Removed old migration script, that migrated pre-0.6.0 configuration data to the native preference panel. This migration caused an issue when tested with Textpattern 4.8.8 on PHP 8.1. An error was triggered which killed Composer package installation, if the old configuration database table did not exist. We could check the existence of the database table, but it's been so long since the version 0.6 migration, that it's better just to remove it.
+* Fixed: Email domain name DNS validation. The email was considered valid, if the domain did not have either an A or a MX record. Now the check is performed the correct way around of requiring records.
 * PHP >= 8.1 compatibility.
+* Now requires Textpattern CMS >= 4.8.0
 * Now requires PHP >= 7.4.
 
 h3. Version 0.9.0 - 2019/03/24
