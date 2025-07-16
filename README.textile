@@ -10,6 +10,8 @@ Using "Composer":https://getcomposer.org:
 
 bc. $ composer require rah/rah_comment_spam
 
+Or "download":https://github.com/gocom/rah_comment_spam/releases an installer package.
+
 h2. Features
 
 * Set comment message length limitations: minimum and maximum, words and characters.
